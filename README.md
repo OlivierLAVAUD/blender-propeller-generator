@@ -27,7 +27,7 @@ The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 
 Add this repository URL in Blender:
 
-`https://raw.githubusercontent.com/OlivierLAVAUD/propeller/main/docs/index.json`
+`https://raw.githubusercontent.com/OlivierLAVAUD/blender-propeller-generator/main/docs/index.json`
 
 1. `Edit > Preferences > Get Extensions`.
 2. In the **Repositories** menu, click **+** > **Add Remote Repository**.
@@ -38,10 +38,10 @@ Updates are picked up from this repository when a new release is published.
 
 ### Manual install from the release
 
-**[Download the latest release](https://github.com/OlivierLAVAUD/propeller/releases/latest)** — the release zip is ready to install, no build required.
+**[Download the latest release](https://github.com/OlivierLAVAUD/blender-propeller-generator/releases/latest)** — the release zip is ready to install, no build required.
 
 1. Download `propeller_generator.zip` (direct link:
-   `https://github.com/OlivierLAVAUD/propeller/releases/latest/download/propeller_generator.zip`),
+   `https://github.com/OlivierLAVAUD/blender-propeller-generator/releases/latest/download/propeller_generator.zip`),
    or build it locally with `.\build.ps1`.
 2. In Blender: `Edit > Preferences > Get Extensions`, top-right dropdown >
    **Install from Disk**, select the zip.

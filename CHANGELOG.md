@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.0.2] - 2026-10-21
+
+### Corrigé
+
+- Longueur de pale calculée à partir de la racine réellement rentrée dans le
+  moyeu : la pointe atteint désormais le diamètre nominal (auparavant elle
+  s'arrêtait au diamètre moins l'enfoncement de racine).
+- Jeu du carénage : `Shroud Offset` est un jeu **radial** réel (et non la moitié)
+  et peut être négatif (recouvrement).
+- Preset **Pullcopter** : l'anneau extérieur est soudé à la pointe des pales
+  (recouvrement 0,5 mm), formant une pièce monobloc comme le jouet réel.
+
 ## [1.0.1] - 2026-10-21
 
 ### Ajouté

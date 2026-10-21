@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Propeller Generator",
     "author": "oLV - Olivier LAVAUD",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Propeller",
     "description": "Génère des hélices paramétriques NACA 4 chiffres",
@@ -73,7 +73,7 @@ PRESETS = {
         "transition_point": 0.33, "trailing_thickness": 0.4,
         "spinner_type": "ogive", "spinner_on_hub": True,
         "spinner_diameter": 18.0, "spinner_length": 10.0, "spinner_rounding": 0.5,
-        "shroud": True, "shroud_offset": 2.0, "shroud_wall": 2.0,
+        "shroud": True, "shroud_offset": -0.5, "shroud_wall": 2.0,
         "shroud_length": 10.0, "shroud_chamfer": 0.4,
         "shaft_type": "cylinder", "shaft_diameter": 6.0,
     },
@@ -145,8 +145,9 @@ class PropellerProperties(bpy.types.PropertyGroup):
     # Shroud
     shroud: bpy.props.BoolProperty(name="Shroud", default=False)
     shroud_offset: bpy.props.FloatProperty(
-        name="Shroud Offset (mm)", default=2.0, min=0.5,
-        description="Jeu entre la pointe des pales et le carénage")
+        name="Shroud Offset (mm)", default=2.0, min=-2.0, soft_min=0.0,
+        description="Jeu radial entre la pointe des pales et le carénage"
+                    " (négatif = recouvrement, pales soudées à l'anneau)")
     shroud_wall: bpy.props.FloatProperty(name="Shroud Wall (mm)", default=1.8, min=0.2)
     shroud_length: bpy.props.FloatProperty(name="Shroud Length (mm)", default=10.0, min=1.0)
     shroud_chamfer: bpy.props.FloatProperty(name="Shroud Chamfer (mm)", default=0.4, min=0.0)
@@ -321,9 +322,12 @@ def _span_samples(total, step):
 
 def build_blade_vnf(props):
     rhub = props.root_diameter / 2
-    blength = props.diameter / 2 - rhub
     # FIX : la pale démarre à l'intérieur du moyeu (plus de contact tangent).
     root_inset = clamp(props.root_diameter * 0.10, 0.4, 2.0)
+    # FIX : la longueur tient compte de l'enfoncement racine, sinon la pointe
+    # n'atteint pas le diamètre nominal (défaut de contact avec le carénage).
+    r_root = rhub - root_inset
+    blength = props.diameter / 2 - r_root
     bpitch = props.pitch if props.pitch >= 0 else blength
     esemimajor = props.ellipse_length * blength
     maxchordlen = 2 * props.chord_fraction * blength
@@ -355,7 +359,7 @@ def build_blade_vnf(props):
 
     def add_section(z_span, z_local, is_root):
         # FIX : rayon racine décalé vers l'intérieur du moyeu.
-        rz = (rhub - root_inset) + z_span
+        rz = r_root + z_span
         if is_root:
             interp = math.sin(math.radians(90 * z_local / ztrans)) if ztrans > 1e-9 else 1.0
             thick = lerp(t_root, t_mid, interp) + fairing_thickness(
@@ -534,13 +538,13 @@ def build_ogive_spinner(props, center_y):
 # ============================================================
 
 def build_shroud(props, center_y):
-    # FIX : jeu minimal garanti entre les pales et le carénage.
-    offset = max(props.shroud_offset, 0.5)
-    d_in = props.diameter + offset
+    # FIX : le jeu shroud_offset est un jeu radial réel (et non la moitié).
+    # Une valeur négative recouvre la pointe des pales et les soude à l'anneau.
+    offset = props.shroud_offset
     wall = max(props.shroud_wall, 0.2)
     l = max(props.shroud_length, 1.0)
     ch = props.shroud_chamfer
-    r_in = d_in / 2
+    r_in = max(props.diameter / 2 + offset, props.root_diameter / 2 + 0.5, 0.5)
     r_out = r_in + wall
     y0 = center_y - l / 2
     y1 = center_y + l / 2

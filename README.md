@@ -111,6 +111,13 @@ propeller/
     preview.png          # README preview
 ```
 
+## Version 1.0.2 notes
+
+- Blade length now accounts for the root recessed into the hub, so the tip
+  reaches the nominal diameter.
+- `Shroud Offset` is a true radial clearance (was half) and may be negative
+  (overlap). The Pullcopter preset fuses the outer ring to the blade tips.
+
 ## Version 1.0.1 notes
 
 - Collapsible parameter sections: click a section title to show or hide its

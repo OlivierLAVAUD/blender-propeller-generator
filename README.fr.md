@@ -111,6 +111,13 @@ propeller/
     preview.png          # aperçu du README
 ```
 
+## Notes de version 1.0.2
+
+- La longueur de pale tient compte de la racine rentrée dans le moyeu : la
+  pointe atteint désormais le diamètre nominal.
+- `Shroud Offset` est un vrai jeu radial (et non la moitié) et peut être négatif
+  (recouvrement). Le preset Pullcopter soude l'anneau extérieur à la pointe des pales.
+
 ## Notes de version 1.0.1
 
 - Sections de paramètres repliables : cliquer sur le titre d'une section pour

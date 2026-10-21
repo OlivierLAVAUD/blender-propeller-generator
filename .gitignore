@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Sorties Blender
+*.blend
+*.blend1
+*.blend2
+*.blend[0-9]*
+
+# Archives produites par build.ps1
+versions/
+*.zip
+
+# Divers
+desktop.ini
+Thumbs.db
+.vscode/
+.idea/

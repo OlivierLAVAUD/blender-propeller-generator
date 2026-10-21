@@ -1,0 +1,16 @@
+schema_version = "1.0.0"
+
+id = "propeller_generator"
+version = "1.0.0"
+name = "Propeller Generator"
+tagline = "Parametric NACA propeller with hub, spinner, shroud and shaft"
+maintainer = "olivi"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:MIT",
+]
+
+platforms = ["windows-x64", "linux-x64", "macos-arm64", "macos-x64"]

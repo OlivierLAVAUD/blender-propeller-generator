@@ -6,7 +6,7 @@ Parametric propeller generator for Blender 4.2+ (tested up to Blender 5.1).
 
 The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 
-![Preview](docs/preview.png)
+![Preview](docs/Blender-Extension-Propeller-Generator.gif)
 
 ## Features
 
@@ -20,6 +20,10 @@ The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 - Automatic **UVs**, single material, adjustable color.
 - Real-world units: dimensions in **millimeters**, object generated in **meters**, placed on the ground.
 - Six ready-to-use presets.
+
+## Demo
+
+![Propeller Generator demo](docs/demo.gif)
 
 ## Installation
 

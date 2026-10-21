@@ -6,7 +6,7 @@ Générateur paramétrique d'hélices pour Blender 4.2+ (testé jusqu'à Blender
 
 Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller**.
 
-![Aperçu](docs/preview.png)
+![Aperçu](docs/Blender-Extension-Propeller-Generator.gif)
 
 ## Fonctionnalités
 
@@ -20,6 +20,10 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 - **UV** automatiques, matériau unique, couleur réglable.
 - Unités réelles : cotes saisies en **millimètres**, objet généré en **mètres**, posé au sol.
 - Six préréglages prêts à l'emploi.
+
+## Démo
+
+![Démonstration de Propeller Generator](docs/demo.gif)
 
 ## Installation
 

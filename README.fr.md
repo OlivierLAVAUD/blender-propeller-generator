@@ -25,7 +25,11 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 
 ### Extension Blender 4.2+ (recommandé)
 
-1. Construire l'archive : `.\build.ps1` → `versions\propeller_generator_v1.0.0.zip`.
+**[Télécharger la dernière version](https://github.com/OlivierLAVAUD/propeller/releases/latest)** — le zip de release est prêt à installer, aucune compilation nécessaire.
+
+1. Télécharger `propeller_generator.zip` (lien direct :
+   `https://github.com/OlivierLAVAUD/propeller/releases/latest/download/propeller_generator.zip`),
+   ou le construire localement avec `.\build.ps1`.
 2. Dans Blender : `Edit > Preferences > Get Extensions`, menu déroulant en haut à droite >
    **Install from Disk**, choisir le zip.
 3. Vérifier que **Propeller Generator** est activé dans l'onglet *Add-ons*.

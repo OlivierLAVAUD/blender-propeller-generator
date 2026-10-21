@@ -6,7 +6,7 @@ Générateur paramétrique d'hélices pour Blender 4.2+ (testé jusqu'à Blender
 
 Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller**.
 
-![Aperçu](docs/Blender-Extension-Propeller-Generator.gif)
+![Aperçu](docs/demo.gif)
 
 ## Fonctionnalités
 
@@ -23,7 +23,7 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 
 ## Démo
 
-![Démonstration de Propeller Generator](docs/demo.gif)
+![Démonstration de Propeller Generator](docs/Blender-Extension-Propeller-Generator.gif)
 
 ## Installation
 
@@ -154,6 +154,10 @@ propeller/
   (`MANIFOLD` → `EXACT` → `FLOAT`) : plus de maillage vide silencieux.
 - Matériau unique et slot correct, UV, lissage, orientation Z-up, unités mm → m et pose au sol.
 - `Reset Defaults` réinitialise réellement toutes les propriétés.
+
+## Références
+
+- Profils NACA 4 chiffres : [Airfoil Tools](http://airfoiltools.com/airfoil/naca4digit)
 
 ## Licence
 

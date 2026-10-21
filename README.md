@@ -6,7 +6,7 @@ Parametric propeller generator for Blender 4.2+ (tested up to Blender 5.1).
 
 The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 
-![Preview](docs/Blender-Extension-Propeller-Generator.gif)
+![Preview](docs/demo.gif)
 
 ## Features
 
@@ -23,7 +23,7 @@ The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 
 ## Demo
 
-![Propeller Generator demo](docs/demo.gif)
+![Propeller Generator demo](docs/Blender-Extension-Propeller-Generator.gif)
 
 ## Installation
 
@@ -151,6 +151,10 @@ propeller/
   (`MANIFOLD` → `EXACT` → `FLOAT`): no more silent empty mesh.
 - Single material and correct slot, UVs, smoothing, Z-up orientation, mm → m units and ground placement.
 - `Reset Defaults` now resets every property.
+
+## References
+
+- NACA 4-digit airfoils: [Airfoil Tools](http://airfoiltools.com/airfoil/naca4digit)
 
 ## License
 

@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "propeller_generator"
-version = "1.0.3"
+version = "1.0.4"
 name = "Propeller Generator"
 tagline = "Parametric NACA propeller with hub, spinner, shroud and shaft"
 maintainer = "olivi"

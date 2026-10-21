@@ -111,6 +111,11 @@ propeller/
     preview.png          # README preview
 ```
 
+## Version 1.0.4 notes
+
+- Changing the colour now only affects the next generated model. Each model gets
+  its own material instead of sharing a single `PropellerMat` datablock.
+
 ## Version 1.0.3 notes
 
 - The whole add-on interface now renders in English regardless of Blender's UI

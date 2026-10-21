@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Propeller Generator",
     "author": "oLV - Olivier LAVAUD",
-    "version": (1, 0, 3),
+    "version": (1, 0, 4),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Propeller",
     "description": "Generate parametric NACA 4-digit propellers",
@@ -745,10 +745,10 @@ def make_shaft_cutter(props, y_min, y_max):
 # MATÉRIAU
 # ============================================================
 
-def _get_propeller_material(rgb):
-    mat = bpy.data.materials.get("PropellerMat")
-    if mat is None:
-        mat = bpy.data.materials.new(name="PropellerMat")
+def _make_propeller_material(rgb, name="PropellerMat"):
+    # FIX : un matériau neuf par objet généré, sinon changer la couleur puis
+    # régénérer recolorait aussi les modèles déjà présents (datablock partagé).
+    mat = bpy.data.materials.new(name=name)
     mat.use_nodes = True
     nt = mat.node_tree
     bsdf = next((n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED'), None)
@@ -769,7 +769,7 @@ def assign_material(obj, rgb):
     # FIX : un seul slot, toutes les faces dessus (les booléens ajoutaient un slot vide).
     me = obj.data
     me.materials.clear()
-    me.materials.append(_get_propeller_material(rgb))
+    me.materials.append(_make_propeller_material(rgb))
     for p in me.polygons:
         p.material_index = 0
 

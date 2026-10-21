@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.0.4] - 2026-10-21
+
+### Corrigé
+
+- Changer la couleur ne s'applique plus qu'au prochain modèle généré : chaque
+  modèle reçoit son propre matériau au lieu de partager un datablock unique
+  `PropellerMat` (modifier la couleur puis régénérer recolorait les modèles
+  déjà présents).
+
 ## [1.0.3] - 2026-10-21
 
 ### Modifié

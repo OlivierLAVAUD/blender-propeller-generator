@@ -111,6 +111,12 @@ propeller/
     preview.png          # aperçu du README
 ```
 
+## Notes de version 1.0.4
+
+- Changer la couleur ne s'applique plus qu'au prochain modèle généré. Chaque
+  modèle reçoit son propre matériau au lieu de partager un datablock unique
+  `PropellerMat`.
+
 ## Notes de version 1.0.3
 
 - Toute l'interface de l'add-on s'affiche désormais en anglais, quelle que soit

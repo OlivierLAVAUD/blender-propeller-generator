@@ -115,43 +115,6 @@ propeller/
     preview.png          # README preview
 ```
 
-## Version 1.0.4 notes
-
-- Changing the colour now only affects the next generated model. Each model gets
-  its own material instead of sharing a single `PropellerMat` datablock.
-
-## Version 1.0.3 notes
-
-- The whole add-on interface now renders in English regardless of Blender's UI
-  language. Section titles, property labels and enum values (e.g. `Blades`,
-  `Smooth Shading`, `Cylinder`, `Linear`) are no longer replaced by Blender's
-  global translation catalogue (`Lamelles`, `Sortie`, `Aucun`…).
-
-## Version 1.0.2 notes
-
-- Blade length now accounts for the root recessed into the hub, so the tip
-  reaches the nominal diameter.
-- `Shroud Offset` is a true radial clearance (was half) and may be negative
-  (overlap). The Pullcopter preset fuses the outer ring to the blade tips.
-
-## Version 1.0.1 notes
-
-- Collapsible parameter sections: click a section title to show or hide its
-  settings. Advanced sections (Airfoils, Spinner, Shroud, Output) start collapsed.
-
-## Version 1.0.0 notes
-
-- Truly planar blade section: no more blade folded onto itself at large chords.
-- Blade root recessed into the hub instead of tangent to it.
-- Ogive and parabolic spinner tangent to the hub, no step.
-- Bounded chords and lengths: no degenerate blade when `ellipse_length = 1.0`.
-- Shroud offset from the blade tips (minimum clearance).
-- D/hex/keyway bores cut correctly, including the D cutter cube.
-- Sequential booleans per blade, with result validation and solver fallback
-  (`MANIFOLD` → `EXACT` → `FLOAT`): no more silent empty mesh.
-- Single material and correct slot, UVs, smoothing, Z-up orientation, mm → m units and ground placement.
-- `Reset Defaults` now resets every property.
-
 ## References
 
 - NACA 4-digit airfoils: [Airfoil Tools](http://airfoiltools.com/airfoil/naca4digit)

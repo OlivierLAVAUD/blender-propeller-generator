@@ -3,6 +3,15 @@
 Toutes les modifications notables de ce projet sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.0.1] - 2026-10-21
+
+### Ajouté
+
+- Sections de paramètres repliables : cliquer sur le titre d'une section
+  (Presets, Propeller, Blade, Airfoils, Hub & Shaft, Spinner, Shroud, Output)
+  pour afficher ou masquer ses réglages. Les sections avancées sont repliées
+  par défaut.
+
 ## [1.0.0] - 2026-10-21
 
 Première version publique.

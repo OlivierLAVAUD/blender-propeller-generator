@@ -111,6 +111,12 @@ propeller/
     preview.png          # aperçu du README
 ```
 
+## Notes de version 1.0.1
+
+- Sections de paramètres repliables : cliquer sur le titre d'une section pour
+  afficher ou masquer ses réglages. Les sections avancées (Airfoils, Spinner,
+  Shroud, Output) sont repliées par défaut.
+
 ## Notes de version 1.0.0
 
 - Section de pale réellement plane : plus de pale repliée sur elle-même aux grandes cordes.

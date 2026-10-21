@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Propeller Generator",
     "author": "oLV - Olivier LAVAUD",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Propeller",
     "description": "Génère des hélices paramétriques NACA 4 chiffres",
@@ -1173,84 +1173,92 @@ class PROP_PT_panel(bpy.types.Panel):
         layout = self.layout
         props = context.scene.propeller_props
 
-        box = layout.box()
-        box.label(text="Presets", icon='PRESET')
-        row = box.row(align=True)
-        for name in ["rc_plane", "rb_plane", "airplane"]:
-            op = row.operator("propeller.apply_preset", text=name.replace("_", " ").title())
-            op.preset = name
-        row = box.row(align=True)
-        for name in ["pc_fan", "toy_boat", "pullcopter"]:
-            op = row.operator("propeller.apply_preset", text=name.replace("_", " ").title())
-            op.preset = name
-        box.operator("propeller.reset", icon='LOOP_BACK')
+        header, body = layout.panel("propeller_gen_presets", default_closed=False)
+        header.label(text="Presets")
+        if body:
+            row = body.row(align=True)
+            for name in ["rc_plane", "rb_plane", "airplane"]:
+                op = row.operator("propeller.apply_preset", text=name.replace("_", " ").title())
+                op.preset = name
+            row = body.row(align=True)
+            for name in ["pc_fan", "toy_boat", "pullcopter"]:
+                op = row.operator("propeller.apply_preset", text=name.replace("_", " ").title())
+                op.preset = name
+            body.operator("propeller.reset", icon='LOOP_BACK')
 
-        box = layout.box()
-        box.label(text="Propeller")
-        box.prop(props, "blades")
-        box.prop(props, "diameter")
-        box.prop(props, "direction")
-        box.prop(props, "root_diameter")
-        box.prop(props, "root_height")
-        box.prop(props, "pitch")
+        header, body = layout.panel("propeller_gen_propeller", default_closed=False)
+        header.label(text="Propeller")
+        if body:
+            body.prop(props, "blades")
+            body.prop(props, "diameter")
+            body.prop(props, "direction")
+            body.prop(props, "root_diameter")
+            body.prop(props, "root_height")
+            body.prop(props, "pitch")
 
-        box = layout.box()
-        box.label(text="Blade")
-        box.prop(props, "chord_mode")
-        box.prop(props, "chord_fraction")
-        box.prop(props, "ellipse_length")
-        box.prop(props, "centerline")
-        box.prop(props, "fairing")
-        box.prop(props, "sweep")
-        box.prop(props, "offset")
-        box.prop(props, "pitch_tip")
+        header, body = layout.panel("propeller_gen_blade", default_closed=False)
+        header.label(text="Blade")
+        if body:
+            body.prop(props, "chord_mode")
+            body.prop(props, "chord_fraction")
+            body.prop(props, "ellipse_length")
+            body.prop(props, "centerline")
+            body.prop(props, "fairing")
+            body.prop(props, "sweep")
+            body.prop(props, "offset")
+            body.prop(props, "pitch_tip")
 
-        box = layout.box()
-        box.label(text="Airfoils")
-        box.prop(props, "naca_root")
-        box.prop(props, "naca_mid")
-        box.prop(props, "naca_tip")
-        box.prop(props, "transition_point")
-        box.prop(props, "trailing_thickness")
+        header, body = layout.panel("propeller_gen_airfoils", default_closed=True)
+        header.label(text="Airfoils")
+        if body:
+            body.prop(props, "naca_root")
+            body.prop(props, "naca_mid")
+            body.prop(props, "naca_tip")
+            body.prop(props, "transition_point")
+            body.prop(props, "trailing_thickness")
 
-        box = layout.box()
-        box.label(text="Hub & Shaft")
-        box.prop(props, "hub_extend")
-        box.prop(props, "shaft_type")
-        box.prop(props, "shaft_diameter")
-        box.prop(props, "shaft_depth")
-        box.prop(props, "shaft_chamfer")
-        if props.shaft_type == "keyway":
-            box.prop(props, "keyway_size")
+        header, body = layout.panel("propeller_gen_hub", default_closed=False)
+        header.label(text="Hub & Shaft")
+        if body:
+            body.prop(props, "hub_extend")
+            body.prop(props, "shaft_type")
+            body.prop(props, "shaft_diameter")
+            body.prop(props, "shaft_depth")
+            body.prop(props, "shaft_chamfer")
+            if props.shaft_type == "keyway":
+                body.prop(props, "keyway_size")
 
-        box = layout.box()
-        box.label(text="Spinner")
-        box.prop(props, "spinner_type")
-        if props.spinner_type != "none":
-            box.prop(props, "spinner_on_hub")
-            box.prop(props, "spinner_diameter")
-            box.prop(props, "spinner_length")
-            box.prop(props, "spinner_rounding")
+        header, body = layout.panel("propeller_gen_spinner", default_closed=True)
+        header.label(text="Spinner")
+        if body:
+            body.prop(props, "spinner_type")
+            if props.spinner_type != "none":
+                body.prop(props, "spinner_on_hub")
+                body.prop(props, "spinner_diameter")
+                body.prop(props, "spinner_length")
+                body.prop(props, "spinner_rounding")
 
-        box = layout.box()
-        box.label(text="Shroud")
-        box.prop(props, "shroud")
-        if props.shroud:
-            box.prop(props, "shroud_offset")
-            box.prop(props, "shroud_wall")
-            box.prop(props, "shroud_length")
-            box.prop(props, "shroud_chamfer")
+        header, body = layout.panel("propeller_gen_shroud", default_closed=True)
+        header.label(text="Shroud")
+        if body:
+            body.prop(props, "shroud")
+            if props.shroud:
+                body.prop(props, "shroud_offset")
+                body.prop(props, "shroud_wall")
+                body.prop(props, "shroud_length")
+                body.prop(props, "shroud_chamfer")
 
-        box = layout.box()
-        box.label(text="Output")
-        box.prop(props, "color")
-        box.prop(props, "z_up")
-        box.prop(props, "scale")
-        box.prop(props, "ground")
-        box.prop(props, "shade_smooth")
-        box.prop(props, "uv_unwrap")
-        box.prop(props, "points")
-        box.prop(props, "slices")
+        header, body = layout.panel("propeller_gen_output", default_closed=True)
+        header.label(text="Output")
+        if body:
+            body.prop(props, "color")
+            body.prop(props, "z_up")
+            body.prop(props, "scale")
+            body.prop(props, "ground")
+            body.prop(props, "shade_smooth")
+            body.prop(props, "uv_unwrap")
+            body.prop(props, "points")
+            body.prop(props, "slices")
 
         layout.operator("propeller.generate", icon="MESH_DATA")
 

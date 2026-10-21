@@ -7,7 +7,7 @@
       "id": "propeller_generator",
       "name": "Propeller Generator",
       "tagline": "Parametric NACA propeller with hub, spinner, shroud and shaft",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "type": "add-on",
       "maintainer": "olivi",
       "license": [
@@ -21,9 +21,9 @@
         "macos-x64"
       ],
       "website": "https://github.com/OlivierLAVAUD/propeller",
-      "archive_url": "https://github.com/OlivierLAVAUD/propeller/releases/download/v1.0.0/propeller_generator_v1.0.0.zip",
-      "archive_size": 15659,
-      "archive_hash": "sha256:bded9904d182dcca0355ca55c94a402ecc39cfae1c85ed69f9d30d15e3667408"
+      "archive_url": "https://github.com/OlivierLAVAUD/propeller/releases/download/v1.0.1/propeller_generator_v1.0.1.zip",
+      "archive_size": 16041,
+      "archive_hash": "sha256:49173802d301b03b4fd37940b78e296d0483021e1d32e9775176029d76b684c1"
     }
   ]
 }

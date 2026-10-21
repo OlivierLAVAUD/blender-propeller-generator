@@ -111,6 +111,11 @@ propeller/
     preview.png          # README preview
 ```
 
+## Version 1.0.1 notes
+
+- Collapsible parameter sections: click a section title to show or hide its
+  settings. Advanced sections (Airfoils, Spinner, Shroud, Output) start collapsed.
+
 ## Version 1.0.0 notes
 
 - Truly planar blade section: no more blade folded onto itself at large chords.

@@ -3,6 +3,18 @@
 Toutes les modifications notables de ce projet sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.0.3] - 2026-10-21
+
+### Modifié
+
+- Toute l'interface de l'add-on s'affiche en anglais quelle que soit la langue
+  de Blender : les sections (Presets, Output…), les libellés et valeurs des
+  propriétés (Blades, Smooth Shading, Cylinder, Linear…) et les menus ne sont
+  plus traduits par le catalogue global de Blender (`Lamelles`, `Sortie`,
+  `Aucun`…). Contexte de traduction propre à l'extension.
+- Descriptions des propriétés, listes déroulantes et messages de l'opérateur
+  traduits en anglais.
+
 ## [1.0.2] - 2026-10-21
 
 ### Corrigé

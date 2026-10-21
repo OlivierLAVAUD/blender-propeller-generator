@@ -111,6 +111,13 @@ propeller/
     preview.png          # README preview
 ```
 
+## Version 1.0.3 notes
+
+- The whole add-on interface now renders in English regardless of Blender's UI
+  language. Section titles, property labels and enum values (e.g. `Blades`,
+  `Smooth Shading`, `Cylinder`, `Linear`) are no longer replaced by Blender's
+  global translation catalogue (`Lamelles`, `Sortie`, `Aucun`…).
+
 ## Version 1.0.2 notes
 
 - Blade length now accounts for the root recessed into the hub, so the tip

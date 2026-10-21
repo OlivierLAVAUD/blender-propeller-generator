@@ -1,10 +1,10 @@
 bl_info = {
     "name": "Propeller Generator",
     "author": "oLV - Olivier LAVAUD",
-    "version": (1, 0, 2),
+    "version": (1, 0, 3),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Propeller",
-    "description": "Génère des hélices paramétriques NACA 4 chiffres",
+    "description": "Generate parametric NACA 4-digit propellers",
     "category": "Add Mesh",
 }
 
@@ -83,92 +83,180 @@ PRESETS = {
 # PARAMÈTRES GLOBAUX
 # ============================================================
 
+# Custom translation context so the add-on's own interface stays in English
+# even when Blender's UI language has a translation for the same word
+# (e.g. "Blades" would otherwise become "Lamelles" in French).
+PROP_CTX = "PropellerGenerator"
+
+
 class PropellerProperties(bpy.types.PropertyGroup):
     # Propeller
-    blades: bpy.props.IntProperty(name="Blades", default=3, min=1, max=12)
-    diameter: bpy.props.FloatProperty(name="Diameter (mm)", default=150.0, min=10.0)
+    blades: bpy.props.IntProperty(
+        name="Blades", default=3, min=1, max=12,
+        description="Number of blades", translation_context=PROP_CTX)
+    diameter: bpy.props.FloatProperty(
+        name="Diameter (mm)", default=150.0, min=10.0,
+        description="Overall propeller diameter", translation_context=PROP_CTX)
     direction: bpy.props.EnumProperty(
         name="Direction",
-        items=[("CW", "Clockwise", ""), ("CCW", "Counterclockwise", "")],
+        description="Blade rotation direction", translation_context=PROP_CTX,
+        items=[("CW", "Clockwise", "Rotate clockwise (viewed from the front)"),
+               ("CCW", "Counterclockwise", "Rotate counterclockwise (viewed from the front)")],
         default="CCW"
     )
-    root_diameter: bpy.props.FloatProperty(name="Root Diameter (mm)", default=14.0, min=2.0)
-    root_height: bpy.props.FloatProperty(name="Root Height (mm)", default=8.0, min=1.0)
-    pitch: bpy.props.FloatProperty(name="Pitch (mm/rev, -1=auto)", default=-1.0)
+    root_diameter: bpy.props.FloatProperty(
+        name="Root Diameter (mm)", default=14.0, min=2.0,
+        description="Hub / blade root diameter", translation_context=PROP_CTX)
+    root_height: bpy.props.FloatProperty(
+        name="Root Height (mm)", default=8.0, min=1.0,
+        description="Blade height at the root", translation_context=PROP_CTX)
+    pitch: bpy.props.FloatProperty(
+        name="Pitch (mm/rev, -1=auto)", default=-1.0,
+        description="Pitch per revolution (-1 = automatic)", translation_context=PROP_CTX)
 
     # Blade
     chord_mode: bpy.props.EnumProperty(
-        name="Chord Mode",
-        items=[("ellipse", "Ellipse", ""), ("linear", "Linear", ""), ("constant", "Constant", "")],
+        name="Chord Mode", translation_context=PROP_CTX,
+        description="Chord distribution along the blade",
+        items=[("ellipse", "Ellipse", "Elliptical chord distribution"),
+               ("linear", "Linear", "Linearly tapered chord"),
+               ("constant", "Constant", "Constant chord")],
         default="ellipse"
     )
-    chord_fraction: bpy.props.FloatProperty(name="Chord Fraction", default=0.15, min=0.05, max=0.8)
-    ellipse_length: bpy.props.FloatProperty(name="Ellipse Length", default=1.1, min=1.0, max=2.5)
-    centerline: bpy.props.FloatProperty(name="Centerline", default=1.0, min=0.0, max=1.0)
-    fairing: bpy.props.FloatProperty(name="Fairing (mm)", default=3.0, min=0.0)
-    sweep: bpy.props.FloatProperty(name="Sweep (deg/mm)", default=0.0)
-    offset: bpy.props.FloatProperty(name="Offset (mm)", default=0.0)
-    pitch_tip: bpy.props.FloatProperty(name="Pitch Tip (-1=same)", default=-1.0)
+    chord_fraction: bpy.props.FloatProperty(
+        name="Chord Fraction", default=0.15, min=0.05, max=0.8,
+        description="Maximum chord as a fraction of blade length", translation_context=PROP_CTX)
+    ellipse_length: bpy.props.FloatProperty(
+        name="Ellipse Length", default=1.1, min=1.0, max=2.5,
+        description="Elliptical chord extent", translation_context=PROP_CTX)
+    centerline: bpy.props.FloatProperty(
+        name="Centerline", default=1.0, min=0.0, max=1.0,
+        description="Chord centreline position", translation_context=PROP_CTX)
+    fairing: bpy.props.FloatProperty(
+        name="Fairing (mm)", default=3.0, min=0.0,
+        description="Blade-to-hub fairing length", translation_context=PROP_CTX)
+    sweep: bpy.props.FloatProperty(
+        name="Sweep (deg/mm)", default=0.0,
+        description="Blade sweep along the radius", translation_context=PROP_CTX)
+    offset: bpy.props.FloatProperty(
+        name="Offset (mm)", default=0.0,
+        description="Blade offset", translation_context=PROP_CTX)
+    pitch_tip: bpy.props.FloatProperty(
+        name="Pitch Tip (-1=same)", default=-1.0,
+        description="Pitch at the tip (-1 = same as root)", translation_context=PROP_CTX)
 
     # Airfoils
-    naca_root: bpy.props.IntProperty(name="NACA Root", default=8430, min=0, max=9999)
-    naca_mid: bpy.props.IntProperty(name="NACA Mid", default=6412, min=0, max=9999)
-    naca_tip: bpy.props.IntProperty(name="NACA Tip", default=3412, min=0, max=9999)
-    transition_point: bpy.props.FloatProperty(name="Transition Point", default=0.33, min=0.0, max=1.0)
-    trailing_thickness: bpy.props.FloatProperty(name="Trailing Thickness (mm)", default=0.4, min=0.0)
+    naca_root: bpy.props.IntProperty(
+        name="NACA Root", default=8430, min=0, max=9999,
+        description="NACA 4-digit code at the root", translation_context=PROP_CTX)
+    naca_mid: bpy.props.IntProperty(
+        name="NACA Mid", default=6412, min=0, max=9999,
+        description="NACA 4-digit code at mid-span", translation_context=PROP_CTX)
+    naca_tip: bpy.props.IntProperty(
+        name="NACA Tip", default=3412, min=0, max=9999,
+        description="NACA 4-digit code at the tip", translation_context=PROP_CTX)
+    transition_point: bpy.props.FloatProperty(
+        name="Transition Point", default=0.33, min=0.0, max=1.0,
+        description="Root-to-mid airfoil transition position", translation_context=PROP_CTX)
+    trailing_thickness: bpy.props.FloatProperty(
+        name="Trailing Thickness (mm)", default=0.4, min=0.0,
+        description="Trailing edge thickness", translation_context=PROP_CTX)
 
     # Hub
-    hub_extend: bpy.props.FloatProperty(name="Hub Extend (mm)", default=2.0, min=0.0)
+    hub_extend: bpy.props.FloatProperty(
+        name="Hub Extend (mm)", default=2.0, min=0.0,
+        description="Hub extension beyond the blade root", translation_context=PROP_CTX)
     shaft_type: bpy.props.EnumProperty(
-        name="Shaft Type",
-        items=[("none", "None", ""), ("cylinder", "Cylinder", ""),
-               ("keyway", "Keyway", ""), ("hex", "Hex", ""), ("D", "D-Shape", "")],
+        name="Shaft Type", translation_context=PROP_CTX,
+        description="Shaft bore type",
+        items=[("none", "None", "No shaft bore"),
+               ("cylinder", "Cylinder", "Plain cylindrical bore"),
+               ("keyway", "Keyway", "Cylindrical bore with a keyway"),
+               ("hex", "Hex", "Hexagonal bore"),
+               ("D", "D-Shape", "D-shaped bore")],
         default="cylinder"
     )
-    shaft_diameter: bpy.props.FloatProperty(name="Shaft Diameter (mm)", default=5.0, min=0.5)
-    shaft_depth: bpy.props.FloatProperty(name="Shaft Depth (-1=auto)", default=-1.0)
-    shaft_chamfer: bpy.props.FloatProperty(name="Shaft Chamfer (mm)", default=0.4, min=0.0)
+    shaft_diameter: bpy.props.FloatProperty(
+        name="Shaft Diameter (mm)", default=5.0, min=0.5,
+        description="Shaft bore diameter", translation_context=PROP_CTX)
+    shaft_depth: bpy.props.FloatProperty(
+        name="Shaft Depth (-1=auto)", default=-1.0,
+        description="Shaft bore depth (-1 = automatic)", translation_context=PROP_CTX)
+    shaft_chamfer: bpy.props.FloatProperty(
+        name="Shaft Chamfer (mm)", default=0.4, min=0.0,
+        description="Shaft bore chamfer", translation_context=PROP_CTX)
     keyway_size: bpy.props.FloatVectorProperty(
-        name="Keyway Size Override [W,H]", size=2, default=(0.0, 0.0), min=0.0)
+        name="Keyway Size Override [W,H]", size=2, default=(0.0, 0.0), min=0.0,
+        description="Keyway width and height override (0 = automatic)", translation_context=PROP_CTX)
 
     # Spinner
     spinner_type: bpy.props.EnumProperty(
-        name="Spinner",
-        items=[("none", "None", ""), ("ogive", "Ogive", ""), ("parabolic", "Parabolic", "")],
+        name="Spinner", translation_context=PROP_CTX,
+        description="Spinner shape",
+        items=[("none", "None", "No spinner"),
+               ("ogive", "Ogive", "Ogive (pointed) spinner"),
+               ("parabolic", "Parabolic", "Parabolic spinner")],
         default="none"
     )
-    spinner_on_hub: bpy.props.BoolProperty(name="Spinner On Hub", default=True)
-    spinner_diameter: bpy.props.FloatProperty(name="Spinner Diameter (mm)", default=20.0, min=1.0)
-    spinner_length: bpy.props.FloatProperty(name="Spinner Length (mm)", default=20.0, min=1.0)
-    spinner_rounding: bpy.props.FloatProperty(name="Spinner Rounding", default=0.5, min=0.0, max=1.0)
+    spinner_on_hub: bpy.props.BoolProperty(
+        name="Spinner On Hub", default=True,
+        description="Mount the spinner on the hub", translation_context=PROP_CTX)
+    spinner_diameter: bpy.props.FloatProperty(
+        name="Spinner Diameter (mm)", default=20.0, min=1.0,
+        description="Spinner diameter", translation_context=PROP_CTX)
+    spinner_length: bpy.props.FloatProperty(
+        name="Spinner Length (mm)", default=20.0, min=1.0,
+        description="Spinner length", translation_context=PROP_CTX)
+    spinner_rounding: bpy.props.FloatProperty(
+        name="Spinner Rounding", default=0.5, min=0.0, max=1.0,
+        description="Spinner tip rounding", translation_context=PROP_CTX)
 
     # Shroud
-    shroud: bpy.props.BoolProperty(name="Shroud", default=False)
+    shroud: bpy.props.BoolProperty(
+        name="Shroud", default=False,
+        description="Add an outer shroud ring", translation_context=PROP_CTX)
     shroud_offset: bpy.props.FloatProperty(
         name="Shroud Offset (mm)", default=2.0, min=-2.0, soft_min=0.0,
-        description="Jeu radial entre la pointe des pales et le carénage"
-                    " (négatif = recouvrement, pales soudées à l'anneau)")
-    shroud_wall: bpy.props.FloatProperty(name="Shroud Wall (mm)", default=1.8, min=0.2)
-    shroud_length: bpy.props.FloatProperty(name="Shroud Length (mm)", default=10.0, min=1.0)
-    shroud_chamfer: bpy.props.FloatProperty(name="Shroud Chamfer (mm)", default=0.4, min=0.0)
+        description="Radial clearance between blade tips and shroud"
+                    " (negative = overlap, tips welded to the ring)",
+        translation_context=PROP_CTX)
+    shroud_wall: bpy.props.FloatProperty(
+        name="Shroud Wall (mm)", default=1.8, min=0.2,
+        description="Shroud wall thickness", translation_context=PROP_CTX)
+    shroud_length: bpy.props.FloatProperty(
+        name="Shroud Length (mm)", default=10.0, min=1.0,
+        description="Shroud height along the axis", translation_context=PROP_CTX)
+    shroud_chamfer: bpy.props.FloatProperty(
+        name="Shroud Chamfer (mm)", default=0.4, min=0.0,
+        description="Shroud edge chamfer", translation_context=PROP_CTX)
 
     # Render / output
-    points: bpy.props.IntProperty(name="Points (0=auto)", default=0, min=0)
-    slices: bpy.props.IntProperty(name="Slices (0=auto)", default=0, min=0)
+    points: bpy.props.IntProperty(
+        name="Points (0=auto)", default=0, min=0,
+        description="Airfoil points per section (0 = automatic)", translation_context=PROP_CTX)
+    slices: bpy.props.IntProperty(
+        name="Slices (0=auto)", default=0, min=0,
+        description="Blade sections along the span (0 = automatic)", translation_context=PROP_CTX)
     color: bpy.props.FloatVectorProperty(
         name="Color", subtype='COLOR', size=3, default=(0.88, 0.88, 0.88),
-        min=0.0, max=1.0)
+        min=0.0, max=1.0,
+        description="Base material colour", translation_context=PROP_CTX)
     z_up: bpy.props.BoolProperty(
         name="Orient Z-up (Blender-native)", default=True,
-        description="Oriente l'hélice selon Z (au lieu de Y)")
+        description="Orient the propeller along Z (instead of Y)", translation_context=PROP_CTX)
     scale: bpy.props.FloatProperty(
         name="Scale", default=0.001, min=1e-6, soft_max=1.0,
-        description="Échelle appliquée après génération (0.001 = mm vers mètres)")
+        description="Scale applied after generation (0.001 = mm to metres)",
+        translation_context=PROP_CTX)
     ground: bpy.props.BoolProperty(
         name="Place on Ground", default=True,
-        description="Déplace le maillage pour que son point le plus bas soit à Z=0")
-    shade_smooth: bpy.props.BoolProperty(name="Smooth Shading", default=True)
-    uv_unwrap: bpy.props.BoolProperty(name="UV Unwrap", default=True)
+        description="Move the mesh so its lowest point is at Z=0", translation_context=PROP_CTX)
+    shade_smooth: bpy.props.BoolProperty(
+        name="Smooth Shading", default=True,
+        description="Apply smooth shading", translation_context=PROP_CTX)
+    uv_unwrap: bpy.props.BoolProperty(
+        name="UV Unwrap", default=True,
+        description="Generate UV coordinates", translation_context=PROP_CTX)
 
 
 # ============================================================
@@ -1120,15 +1208,15 @@ class PROP_OT_generate(bpy.types.Operator):
         try:
             obj = create_propeller_object(context, props)
         except (ValueError, AssertionError) as e:
-            self.report({'ERROR'}, f"Paramètres invalides : {e}")
+            self.report({'ERROR'}, f"Invalid parameters: {e}")
             return {'CANCELLED'}
         except Exception as e:
-            self.report({'ERROR'}, f"Erreur : {e}")
+            self.report({'ERROR'}, f"Error: {e}")
             return {'CANCELLED'}
         if obj is None:
-            self.report({'ERROR'}, "Génération échouée")
+            self.report({'ERROR'}, "Generation failed")
             return {'CANCELLED'}
-        self.report({'INFO'}, f"Hélice générée : {len(obj.data.vertices)} vertices")
+        self.report({'INFO'}, f"Propeller generated: {len(obj.data.vertices)} vertices")
         return {'FINISHED'}
 
 
@@ -1178,20 +1266,23 @@ class PROP_PT_panel(bpy.types.Panel):
         props = context.scene.propeller_props
 
         header, body = layout.panel("propeller_gen_presets", default_closed=False)
-        header.label(text="Presets")
+        header.label(text="Presets", translate=False)
         if body:
             row = body.row(align=True)
             for name in ["rc_plane", "rb_plane", "airplane"]:
-                op = row.operator("propeller.apply_preset", text=name.replace("_", " ").title())
+                op = row.operator("propeller.apply_preset",
+                                  text=name.replace("_", " ").title(), translate=False)
                 op.preset = name
             row = body.row(align=True)
             for name in ["pc_fan", "toy_boat", "pullcopter"]:
-                op = row.operator("propeller.apply_preset", text=name.replace("_", " ").title())
+                op = row.operator("propeller.apply_preset",
+                                  text=name.replace("_", " ").title(), translate=False)
                 op.preset = name
-            body.operator("propeller.reset", icon='LOOP_BACK')
+            body.operator("propeller.reset", icon='LOOP_BACK',
+                          text="Reset Defaults", translate=False)
 
         header, body = layout.panel("propeller_gen_propeller", default_closed=False)
-        header.label(text="Propeller")
+        header.label(text="Propeller", translate=False)
         if body:
             body.prop(props, "blades")
             body.prop(props, "diameter")
@@ -1201,7 +1292,7 @@ class PROP_PT_panel(bpy.types.Panel):
             body.prop(props, "pitch")
 
         header, body = layout.panel("propeller_gen_blade", default_closed=False)
-        header.label(text="Blade")
+        header.label(text="Blade", translate=False)
         if body:
             body.prop(props, "chord_mode")
             body.prop(props, "chord_fraction")
@@ -1213,7 +1304,7 @@ class PROP_PT_panel(bpy.types.Panel):
             body.prop(props, "pitch_tip")
 
         header, body = layout.panel("propeller_gen_airfoils", default_closed=True)
-        header.label(text="Airfoils")
+        header.label(text="Airfoils", translate=False)
         if body:
             body.prop(props, "naca_root")
             body.prop(props, "naca_mid")
@@ -1222,7 +1313,7 @@ class PROP_PT_panel(bpy.types.Panel):
             body.prop(props, "trailing_thickness")
 
         header, body = layout.panel("propeller_gen_hub", default_closed=False)
-        header.label(text="Hub & Shaft")
+        header.label(text="Hub & Shaft", translate=False)
         if body:
             body.prop(props, "hub_extend")
             body.prop(props, "shaft_type")
@@ -1233,7 +1324,7 @@ class PROP_PT_panel(bpy.types.Panel):
                 body.prop(props, "keyway_size")
 
         header, body = layout.panel("propeller_gen_spinner", default_closed=True)
-        header.label(text="Spinner")
+        header.label(text="Spinner", translate=False)
         if body:
             body.prop(props, "spinner_type")
             if props.spinner_type != "none":
@@ -1243,7 +1334,7 @@ class PROP_PT_panel(bpy.types.Panel):
                 body.prop(props, "spinner_rounding")
 
         header, body = layout.panel("propeller_gen_shroud", default_closed=True)
-        header.label(text="Shroud")
+        header.label(text="Shroud", translate=False)
         if body:
             body.prop(props, "shroud")
             if props.shroud:
@@ -1253,7 +1344,7 @@ class PROP_PT_panel(bpy.types.Panel):
                 body.prop(props, "shroud_chamfer")
 
         header, body = layout.panel("propeller_gen_output", default_closed=True)
-        header.label(text="Output")
+        header.label(text="Output", translate=False)
         if body:
             body.prop(props, "color")
             body.prop(props, "z_up")
@@ -1264,7 +1355,8 @@ class PROP_PT_panel(bpy.types.Panel):
             body.prop(props, "points")
             body.prop(props, "slices")
 
-        layout.operator("propeller.generate", icon="MESH_DATA")
+        layout.operator("propeller.generate", icon="MESH_DATA",
+                        text="Generate Propeller", translate=False)
 
 
 # ============================================================

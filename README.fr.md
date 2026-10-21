@@ -111,6 +111,14 @@ propeller/
     preview.png          # aperçu du README
 ```
 
+## Notes de version 1.0.3
+
+- Toute l'interface de l'add-on s'affiche désormais en anglais, quelle que soit
+  la langue de Blender. Les titres de sections, les libellés et les valeurs des
+  propriétés (`Blades`, `Smooth Shading`, `Cylinder`, `Linear`…) ne sont plus
+  remplacés par le catalogue de traduction global de Blender (`Lamelles`,
+  `Sortie`, `Aucun`…).
+
 ## Notes de version 1.0.2
 
 - La longueur de pale tient compte de la racine rentrée dans le moyeu : la

@@ -23,7 +23,20 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 
 ## Installation
 
-### Extension Blender 4.2+ (recommandé)
+### Installation en un clic depuis GitHub (recommandé)
+
+Ajouter cette URL de dépôt dans Blender :
+
+`https://raw.githubusercontent.com/OlivierLAVAUD/propeller/main/docs/index.json`
+
+1. `Edit > Preferences > Get Extensions`.
+2. Ouvrir le menu des dépôts (en haut à droite) et choisir **Add Remote Repository**.
+3. Coller l'URL ci-dessus et valider.
+4. Rechercher **Propeller Generator** et cliquer sur **Install**.
+
+Les mises à jour sont récupérées depuis ce dépôt à chaque nouvelle release.
+
+### Installation manuelle depuis la release
 
 **[Télécharger la dernière version](https://github.com/OlivierLAVAUD/propeller/releases/latest)** — le zip de release est prêt à installer, aucune compilation nécessaire.
 
@@ -93,6 +106,9 @@ propeller/
   README.fr.md           # readme français
   CHANGELOG.md
   LICENSE
+  docs/
+    index.json           # index du dépôt d'extensions Blender
+    preview.png          # aperçu du README
 ```
 
 ## Notes de version 1.0.0

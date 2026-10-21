@@ -30,7 +30,7 @@ Ajouter cette URL de dépôt dans Blender :
 `https://raw.githubusercontent.com/OlivierLAVAUD/propeller/main/docs/index.json`
 
 1. `Edit > Preferences > Get Extensions`.
-2. Ouvrir le menu des dépôts (en haut à droite) et choisir **Add Remote Repository**.
+2. Dans le menu **Repositories**, cliquer sur **+** > **Add Remote Repository**.
 3. Coller l'URL ci-dessus et valider.
 4. Rechercher **Propeller Generator** et cliquer sur **Install**.
 

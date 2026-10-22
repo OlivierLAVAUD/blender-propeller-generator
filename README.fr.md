@@ -11,6 +11,7 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 ## Fonctionnalités
 
 - 1 à 12 pales, section **NACA 4 chiffres** (racine / milieu / pointe, avec point de transition).
+- **Pales toroïdales** : boucles fermées avec cinq images clés NACA/ellipse modifiables et support multi-pales.
 - Planforme de pale **ellipse**, **linéaire** ou **constante** : corde, longueur d'ellipse, ligne médiane, fairing, flèche et offset.
 - Vrillage radial : pas en mm/tour (auto ou manuel) et pas de pointe.
 - **Moyeu** paramétrique, **ogive** ou spinner **parabolique**.
@@ -19,7 +20,7 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 - Maillage **étanche** (booléens séquentiels validés), normales cohérentes, lissage par angle.
 - **UV** automatiques, matériau unique, couleur réglable.
 - Unités réelles : cotes saisies en **millimètres**, objet généré en **mètres**, posé au sol.
-- Six préréglages prêts à l'emploi.
+- Sept préréglages prêts à l'emploi.
 
 ## Démo
 
@@ -76,6 +77,7 @@ Le bouton **Reset Defaults** remet tous les paramètres à leur valeur par défa
 | `PC Fan` | ventilateur de boîtier PC |
 | `Toy Boat` | hélice de bateau jouet, 3 pales |
 | `Pullcopter` | hélice à tirer, shroud et alésage |
+| `Toroidal` | hélice toroïdale 2 pales à boucles |
 
 ## Paramètres principaux
 
@@ -83,6 +85,7 @@ Le bouton **Reset Defaults** remet tous les paramètres à leur valeur par défa
 | --- | --- |
 | Propeller | nombre de pales, diamètre, sens de rotation, diamètre/hauteur de racine, pas |
 | Blade | mode de corde, fraction de corde, longueur d'ellipse, ligne médiane, fairing, flèche, offset, pas de pointe |
+| Toroidal Blade | offset de pale, largeur et position X avant/arrière, cinq images clés (position, profil, corde, pivot, incidence), points et sections |
 | Airfoils | NACA racine/milieu/pointe, point de transition, épaisseur de bord de fuite |
 | Hub & Shaft | extension du moyeu, type d'alésage (aucun, cylindre, D, hex, clavette), diamètre, profondeur, chanfrein, taille de clavette |
 | Spinner | aucun, ogive ou parabolique ; montage sur moyeu, diamètre, longueur, arrondi |
@@ -114,6 +117,18 @@ propeller/
     index.json           # index du dépôt d'extensions Blender
     preview.png          # aperçu du README
 ```
+
+## Notes de version 1.1.0
+
+- Nouveau type de pale **Toroidal** : boucles fermées générées par loft le long
+  d'une spline Catmull-Rom, avec cinq images clés (position, profil NACA ou
+  ellipse, corde, pivot, incidence).
+- Support de 1 à 12 pales toroïdales, avec union du moyeu et des boucles en une
+  seule opération booléenne.
+- Nouveau préréglage **Toroidal** (2 pales, 80 mm, moyeu 16 × 6 mm, alésage 5,5 mm).
+- Les sections Spinner et Shroud sont masquées pour les pales toroïdales.
+- L'alésage du moyeu est usiné avant l'union des pales, pour garantir un trou
+  réellement traversant.
 
 ## Notes de version 1.0.4
 
@@ -158,6 +173,10 @@ propeller/
 ## Références
 
 - Profils NACA 4 chiffres : [Airfoil Tools](http://airfoiltools.com/airfoil/naca4digit)
+- Concepts de trace et de profils des pales toroïdales inspirés de
+  [Ultimate Toroidal Propeller Generator](https://github.com/RaulBejarano/Ultimate-Toroidal-Propeller-Generator)
+  par Raul Bejarano (GPL-3.0). L'implémentation Blender est indépendante et ne
+  contient aucun code GPL.
 
 ## Licence
 

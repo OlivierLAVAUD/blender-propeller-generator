@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Propeller Generator",
     "author": "oLV - Olivier LAVAUD",
-    "version": (1, 0, 4),
+    "version": (1, 1, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Propeller",
     "description": "Generate parametric NACA 4-digit propellers",
@@ -77,6 +77,34 @@ PRESETS = {
         "shroud_length": 10.0, "shroud_chamfer": 0.4,
         "shaft_type": "cylinder", "shaft_diameter": 6.0,
     },
+    "toroidal": {
+        "blade_type": "toroidal",
+        "blades": 2,
+        "diameter": 80.0,
+        "root_diameter": 16.0,
+        "root_height": 6.0,
+        "hub_extend": 0.0,
+        "pitch": -1.0,
+        "offset": 0.0,
+        "toro_blade_offset": 2.0,
+        "toro_lead_width": 25.0,
+        "toro_trail_width": 20.0,
+        "toro_lead_x": 50.0,
+        "toro_trail_x": 80.0,
+        "toro_pcts": (0.0, 35.0, 50.0, 87.0, 100.0),
+        "toro_naca": (2412, 2412, 0, 2412, 8412),
+        "toro_ellipse": (0.0, 0.0, 0.5, 0.0, 0.0),
+        "toro_chords": (8.0, 3.0, 2.5, 3.0, 4.0),
+        "toro_pivots": (50.0, 25.0, 100.0, 50.0, 65.0),
+        "toro_attacks": (15.0, 40.0, -90.0, 0.0, 10.0),
+        "toro_points": 80,
+        "toro_steps": 16,
+        "spinner_type": "none",
+        "shroud": False,
+        "shaft_type": "cylinder",
+        "shaft_diameter": 5.5,
+        "shaft_chamfer": 0.4,
+    },
 }
 
 # ============================================================
@@ -94,6 +122,13 @@ class PropellerProperties(bpy.types.PropertyGroup):
     blades: bpy.props.IntProperty(
         name="Blades", default=3, min=1, max=12,
         description="Number of blades", translation_context=PROP_CTX)
+    blade_type: bpy.props.EnumProperty(
+        name="Blade Type", translation_context=PROP_CTX,
+        description="Geometry of the blade",
+        items=[("straight", "Straight", "Classic radial blades"),
+               ("toroidal", "Toroidal", "Toroidal ring blade")],
+        default="straight"
+    )
     diameter: bpy.props.FloatProperty(
         name="Diameter (mm)", default=150.0, min=10.0,
         description="Overall propeller diameter", translation_context=PROP_CTX)
@@ -113,6 +148,68 @@ class PropellerProperties(bpy.types.PropertyGroup):
     pitch: bpy.props.FloatProperty(
         name="Pitch (mm/rev, -1=auto)", default=-1.0,
         description="Pitch per revolution (-1 = automatic)", translation_context=PROP_CTX)
+
+    # Toroidal path
+    toro_blade_offset: bpy.props.FloatProperty(
+        name="Blade Offset (mm)", default=2.0, min=0.0, max=50.0,
+        description="Axial offset between the leading and trailing blade roots",
+        translation_context=PROP_CTX)
+    toro_lead_width: bpy.props.FloatProperty(
+        name="Leading Width (%)", default=25.0, min=0.0, max=100.0,
+        description="Leading half width as a percentage of blade length",
+        translation_context=PROP_CTX)
+    toro_trail_width: bpy.props.FloatProperty(
+        name="Trailing Width (%)", default=20.0, min=0.0, max=100.0,
+        description="Trailing half width as a percentage of blade length",
+        translation_context=PROP_CTX)
+    toro_lead_x: bpy.props.FloatProperty(
+        name="Leading X (%)", default=50.0, min=0.0, max=100.0,
+        description="Leading half radial position as a percentage of blade length",
+        translation_context=PROP_CTX)
+    toro_trail_x: bpy.props.FloatProperty(
+        name="Trailing X (%)", default=80.0, min=0.0, max=100.0,
+        description="Trailing half radial position as a percentage of blade length",
+        translation_context=PROP_CTX)
+
+    # Toroidal keyframes: pct, NACA (0 = ellipse), ellipse scale, chord, pivot, attack
+    toro_pcts: bpy.props.FloatVectorProperty(
+        name="Keyframe Positions (%)", size=5, default=(0.0, 35.0, 50.0, 87.0, 100.0),
+        min=0.0, max=100.0,
+        description="Positions of the five toroidal keyframes along the path",
+        translation_context=PROP_CTX)
+    toro_naca: bpy.props.IntVectorProperty(
+        name="NACA Codes", size=5, default=(2412, 2412, 0, 2412, 8412),
+        min=0, max=9999,
+        description="NACA 4-digit profile per keyframe (0 = ellipse)",
+        translation_context=PROP_CTX)
+    toro_ellipse: bpy.props.FloatVectorProperty(
+        name="Ellipse Scales", size=5, default=(0.0, 0.0, 0.5, 0.0, 0.0),
+        min=0.0, max=1.0,
+        description="Ellipse thickness scale where the NACA code is 0",
+        translation_context=PROP_CTX)
+    toro_chords: bpy.props.FloatVectorProperty(
+        name="Chords (mm)", size=5, default=(8.0, 3.0, 2.5, 3.0, 4.0),
+        min=0.1,
+        description="Chord length per keyframe",
+        translation_context=PROP_CTX)
+    toro_pivots: bpy.props.FloatVectorProperty(
+        name="Pivots (%)", size=5, default=(50.0, 25.0, 100.0, 50.0, 65.0),
+        min=0.0, max=100.0,
+        description="Chord pivot per keyframe (0 = leading edge, 100 = trailing edge)",
+        translation_context=PROP_CTX)
+    toro_attacks: bpy.props.FloatVectorProperty(
+        name="Attacks (deg)", size=5, default=(15.0, 40.0, -90.0, 0.0, 10.0),
+        min=-180.0, max=180.0,
+        description="Attack angle per keyframe",
+        translation_context=PROP_CTX)
+    toro_points: bpy.props.IntProperty(
+        name="Profile Points", default=80, min=16, max=240,
+        description="Points around each toroidal profile (forced even)",
+        translation_context=PROP_CTX)
+    toro_steps: bpy.props.IntProperty(
+        name="Slices per Span", default=16, min=2, max=64,
+        description="Loft sections between consecutive toroidal keyframes",
+        translation_context=PROP_CTX)
 
     # Blade
     chord_mode: bpy.props.EnumProperty(
@@ -408,7 +505,227 @@ def _span_samples(total, step):
     n = max(1, int(math.ceil(total / max(step, 1e-6))))
     return [total * i / n for i in range(n + 1)]
 
+def _toro_controls(props):
+    """Control polygon of one toroidal blade, in reference coordinates.
+
+    X is radial, Y lateral, Z along the hub axis.  The two root points sit on
+    a secant of the hub circle, which keeps them embedded in the hub.
+    """
+    length = props.diameter * 0.5
+    h = props.root_height
+    off = props.toro_blade_offset
+    r = props.root_diameter * math.cos(math.radians(30)) * 0.5
+
+    lead_w = length * props.toro_lead_width * 0.01
+    trail_w = length * props.toro_trail_width * 0.01
+    lead_x = length * props.toro_lead_x * 0.01
+    trail_x = length * props.toro_trail_x * 0.01
+
+    a60 = math.radians(60.0)
+    A = Vector((r * math.cos(a60), r * math.sin(a60), h * 0.5 + off * 0.5))
+    B = Vector((lead_x, lead_w, h * 0.5))
+    M = Vector((length, 0.0, h * 0.5))
+    C = Vector((trail_x, -trail_w, h * 0.5))
+    D = Vector((r * math.cos(a60), -r * math.sin(a60), h * 0.5 - off * 0.5))
+
+    scale_a = (B - A).length
+    scale_d = (D - C).length
+    ta = Vector((scale_a * math.cos(a60), scale_a * math.sin(a60), 0.0))
+    a240 = math.radians(-240.0)
+    td = Vector((scale_d * math.cos(a240), scale_d * math.sin(a240), 0.0))
+
+    return A, B, M, C, D, B - 2.0 * ta, C + 2.0 * td
+
+
+def _toro_catmull_rom(p0, p1, p2, p3, u):
+    u2 = u * u
+    u3 = u2 * u
+    return 0.5 * (
+        2.0 * p1
+        + (-p0 + p2) * u
+        + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * u2
+        + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * u3
+    )
+
+
+def _toro_path_point(t, controls):
+    a, b, m, c, d, a0, d3 = controls
+    t = clamp(t, 0.0, 1.0)
+    seg = min(3, int(t * 4.0))
+    u = t * 4.0 - seg
+    if seg == 0:
+        p0, p1, p2, p3 = a0, a, b, m
+    elif seg == 1:
+        p0, p1, p2, p3 = a, b, m, c
+    elif seg == 2:
+        p0, p1, p2, p3 = b, m, c, d
+    else:
+        p0, p1, p2, p3 = m, c, d, d3
+    return _toro_catmull_rom(p0, p1, p2, p3, u)
+
+
+def _toro_tangent(t, controls, dt=1e-3):
+    t0 = max(0.0, t - dt)
+    t1 = min(1.0, t + dt)
+    v = _toro_path_point(t1, controls) - _toro_path_point(t0, controls)
+    if v.length < 1e-12:
+        return Vector((1.0, 0.0, 0.0))
+    return v.normalized()
+
+
+def _toro_frame(tangent):
+    z = tangent.normalized()
+    up = Vector((0.0, 0.0, 1.0))
+    if abs(z.z) > 0.9:
+        up = Vector((0.0, 1.0, 0.0))
+    x = up.cross(z)
+    if x.length < 1e-12:
+        x = Vector((1.0, 0.0, 0.0))
+    x.normalize()
+    y = z.cross(x)
+    y.normalize()
+    return x, y
+
+
+def _toro_naca_surface(x, m, p, t, side):
+    yc = naca_camber(x, m, p)
+    th = math.atan(naca_gradient(x, m, p))
+    yt = 5.0 * t * (
+        0.2969 * math.sqrt(max(x, 0.0))
+        - 0.1260 * x
+        - 0.3516 * x * x
+        + 0.2843 * x * x * x
+        - 0.1015 * x * x * x * x
+    )
+    if side > 0:
+        return (x - yt * math.sin(th), yc + yt * math.cos(th))
+    return (x + yt * math.sin(th), yc - yt * math.cos(th))
+
+
+def _toro_naca_outline(code, count):
+    """Closed NACA outline with exactly `count` unique points."""
+    m, p, t = naca_params(code)
+    half = count // 2 + 1
+    pts = []
+    for i in range(half):
+        x = 0.5 * (1.0 - math.cos(math.pi * i / (half - 1)))
+        pts.append(_toro_naca_surface(x, m, p, t, 1))
+    for i in range(half - 2, 0, -1):
+        x = 0.5 * (1.0 - math.cos(math.pi * i / (half - 1)))
+        pts.append(_toro_naca_surface(x, m, p, t, -1))
+    return [(x, -y) for (x, y) in pts]
+
+
+def _toro_ellipse_outline(scale, count):
+    pts = []
+    for i in range(count):
+        a = 2.0 * math.pi * i / count
+        pts.append(((math.cos(a) + 1.0) * 0.5, math.sin(a) * scale * 0.5))
+    return pts
+
+
+def _toro_profile_2d(naca, ellipse_scale, chord, pivot, attack, count):
+    if naca == 0:
+        pts = _toro_ellipse_outline(max(ellipse_scale, 1e-3), count)
+    else:
+        pts = _toro_naca_outline(naca, count)
+
+    px = clamp(pivot, 0.0, 100.0) * 0.01
+    ca = math.cos(math.radians(attack))
+    sa = math.sin(math.radians(attack))
+    out = []
+    for x, y in pts:
+        x = (x - px) * chord
+        y *= chord
+        out.append((x * ca - y * sa, x * sa + y * ca))
+    return out
+
+
+def _toro_half_fix(t, pts):
+    if t < 0.5:
+        return [(-x, -y) for (x, y) in pts]
+    return [(x, -y) for (x, y) in pts]
+
+
+def _toro_keyframes(props):
+    return [
+        (
+            float(props.toro_pcts[i]),
+            int(props.toro_naca[i]),
+            float(props.toro_ellipse[i]),
+            float(props.toro_chords[i]),
+            float(props.toro_pivots[i]),
+            float(props.toro_attacks[i]),
+        )
+        for i in range(5)
+    ]
+
+
+def build_toroidal_blade_vnf(props):
+    """Build one closed toroidal blade loop.
+
+    The loop is generated in reference coordinates (Z = hub axis) and then
+    rotated into the add-on's local convention (Y = hub axis).
+    """
+    controls = _toro_controls(props)
+    keyframes = _toro_keyframes(props)
+
+    count = max(16, int(props.toro_points))
+    if count % 2:
+        count += 1
+    steps = max(2, int(props.toro_steps))
+
+    key_2d = []
+    for pct, naca, ell, chord, pivot, attack in keyframes:
+        pts = _toro_profile_2d(naca, ell, chord, pivot, attack, count)
+        key_2d.append(_toro_half_fix(pct * 0.01, pts))
+
+    sections = []
+    for i in range(len(keyframes) - 1):
+        t0 = keyframes[i][0] * 0.01
+        t1 = keyframes[i + 1][0] * 0.01
+        for s in range(steps):
+            u = s / steps
+            t = lerp(t0, t1, u)
+            pts = [
+                (lerp(key_2d[i][k][0], key_2d[i + 1][k][0], u),
+                 lerp(key_2d[i][k][1], key_2d[i + 1][k][1], u))
+                for k in range(count)
+            ]
+            sections.append((t, pts))
+    sections.append((keyframes[-1][0] * 0.01, key_2d[-1]))
+
+    vertices = []
+    for t, pts in sections:
+        p = _toro_path_point(t, controls)
+        tangent = _toro_tangent(t, controls)
+        x_axis, y_axis = _toro_frame(tangent)
+        for px, py in pts:
+            vertices.append(p + x_axis * px + y_axis * py)
+
+    n_sec = len(sections)
+    faces = []
+    for s in range(n_sec - 1):
+        base = s * count
+        nxt = (s + 1) * count
+        for j in range(count):
+            jn = (j + 1) % count
+            faces.append((base + j, base + jn, nxt + jn, nxt + j))
+    faces.append(tuple(reversed(range(count))))
+    faces.append(tuple(range((n_sec - 1) * count, n_sec * count)))
+
+    # Reference Z-up -> Blender local Y-up, then mirror for CW.
+    verts = [(v.x, v.z, -v.y) for v in vertices]
+    if props.direction == "CW":
+        verts = [(-x, y, z) for (x, y, z) in verts]
+    return verts, faces
+
 def build_blade_vnf(props):
+    # Nouveau : mode toroïdal
+    if props.blade_type == "toroidal":
+        return build_toroidal_blade_vnf(props)
+
+    # --- Code existant pour les pales droites ---
     rhub = props.root_diameter / 2
     # FIX : la pale démarre à l'intérieur du moyeu (plus de contact tangent).
     root_inset = clamp(props.root_diameter * 0.10, 0.4, 2.0)
@@ -828,7 +1145,8 @@ def _join_meshes(target, source):
     bpy.ops.object.join()
 
 
-def _apply_boolean(target, operand, operation, name="Bool"):
+def _apply_boolean(target, operand, operation, name="Bool",
+                   require_manifold=False, require_single=False):
     """
     Applique un booléen sur une COPIE du maillage, valide le résultat
     (certains solveurs renvoient un maillage vide sans lever d'erreur),
@@ -863,6 +1181,10 @@ def _apply_boolean(target, operand, operation, name="Bool"):
                     result_ok = nf >= max(1, int(0.5 * max(target_faces, operand_faces)))
                 else:
                     result_ok = nf >= max(1, int(0.2 * target_faces))
+                if result_ok and require_manifold:
+                    result_ok = _mesh_is_manifold(test.data)
+                if result_ok and require_single:
+                    result_ok = _mesh_component_count(test.data) == 1
             attempts.append(f"{solver}: v={nv} f={nf}")
         except Exception as e:
             attempts.append(f"{solver}: {e}")
@@ -890,13 +1212,70 @@ def _apply_boolean(target, operand, operation, name="Bool"):
     raise RuntimeError(f"Booléen {operation} échoué ({name}) : {' | '.join(attempts)}")
 
 
+def _apply_boolean_collection(target, collection, name="UnionCollection"):
+    """Union every object in `collection` into `target` in one operation."""
+    solvers = [i.identifier for i in
+               bpy.types.BooleanModifier.bl_rna.properties['solver'].enum_items]
+    order = [s for s in ("FLOAT", "MANIFOLD", "EXACT") if s in solvers]
+    attempts = []
+
+    for solver in order:
+        test = target.copy()
+        test.data = target.data.copy()
+        test.modifiers.clear()
+        bpy.context.collection.objects.link(test)
+        _solo_select(test)
+
+        mod = test.modifiers.new(name=name, type='BOOLEAN')
+        mod.operation = 'UNION'
+        mod.operand_type = 'COLLECTION'
+        mod.collection = collection
+        mod.solver = solver
+
+        result_ok = False
+        try:
+            bpy.ops.object.modifier_apply(modifier=mod.name)
+            nv = len(test.data.vertices)
+            nf = len(test.data.polygons)
+            if nv > 0 and nf > 0:
+                result_ok = (_mesh_is_manifold(test.data)
+                             and _mesh_component_count(test.data) == 1)
+            attempts.append(f"{solver}: v={nv} f={nf}")
+        except Exception as e:
+            attempts.append(f"{solver}: {e}")
+
+        if result_ok:
+            good_mesh = test.data
+            old_mesh = target.data
+            target.data = good_mesh
+            bpy.data.objects.remove(test, do_unlink=True)
+            if old_mesh.users == 0:
+                try:
+                    bpy.data.meshes.remove(old_mesh)
+                except RuntimeError:
+                    pass
+            return True
+
+        bad_mesh = test.data
+        bpy.data.objects.remove(test, do_unlink=True)
+        if bad_mesh.users == 0:
+            try:
+                bpy.data.meshes.remove(bad_mesh)
+            except RuntimeError:
+                pass
+
+    raise RuntimeError(
+        f"Booléen {name} échoué : {' | '.join(attempts)}")
+
+
 def _union_safe(target, operand, name):
-    """Union booléenne, avec fusion simple en dernier recours."""
+    """Union boolǸenne, avec fusion simple en dernier recours."""
     try:
         _apply_boolean(target, operand, 'UNION', name)
     except RuntimeError as e:
-        print(f"Booléen {name} échoué, fusion sans booléen : {e}")
+        print(f"BoolǸen {name} ǸchouǸ, fusion sans boolǸen : {e}")
         _join_meshes(target, operand)
+
 
 
 # ============================================================
@@ -913,6 +1292,37 @@ def clean_mesh(mesh, dist=0.01):
     bm.to_mesh(mesh)
     bm.free()
     mesh.update()
+
+
+def _mesh_is_manifold(mesh):
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    ok = all(e.is_manifold and not e.is_boundary for e in bm.edges)
+    bm.free()
+    return ok
+
+
+def _mesh_component_count(mesh):
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bm.verts.ensure_lookup_table()
+    seen = set()
+    count = 0
+    for start in bm.verts:
+        if start.index in seen:
+            continue
+        count += 1
+        stack = [start]
+        seen.add(start.index)
+        while stack:
+            v = stack.pop()
+            for e in v.link_edges:
+                other = e.other_vert(v)
+                if other.index not in seen:
+                    seen.add(other.index)
+                    stack.append(other)
+    bm.free()
+    return count
 
 
 def chamfer_shaft_mouths(obj, radius, chamfer, y_values):
@@ -950,6 +1360,16 @@ def chamfer_shaft_mouths(obj, radius, chamfer, y_values):
 # VALIDATION + APPLICATION DES PRESETS
 # ============================================================
 
+def _toro_root_half_extent(props, index):
+    chord = float(props.toro_chords[index])
+    attack = math.radians(float(props.toro_attacks[index]))
+    if int(props.toro_naca[index]) == 0:
+        thick = chord * float(props.toro_ellipse[index])
+    else:
+        thick = chord * 0.12
+    return 0.5 * abs(chord * math.sin(attack)) + 0.5 * abs(thick * math.cos(attack))
+
+
 def validate_props(props):
     if props.blades < 1:
         raise ValueError("Blades doit être >= 1")
@@ -957,21 +1377,44 @@ def validate_props(props):
         raise ValueError("Diameter doit être > Root Diameter")
     if props.root_height <= 0:
         raise ValueError("Root Height doit être > 0")
-    if not (1.0 <= props.ellipse_length <= 2.5):
-        raise ValueError("Ellipse Length doit être dans [1.0 .. 2.5]")
-    if not (0.0 < props.chord_fraction <= 0.8):
-        raise ValueError("Chord Fraction doit être dans (0 .. 0.8]")
-    if props.transition_point < 0 or props.transition_point > 1:
-        raise ValueError("Transition Point doit être dans [0 .. 1]")
+
+    if props.blade_type == "toroidal":
+        pcts = [float(v) for v in props.toro_pcts]
+        if abs(pcts[0]) > 1e-6 or abs(pcts[-1] - 100.0) > 1e-6:
+            raise ValueError("Toroidal keyframes must start at 0% and end at 100%")
+        if any(pcts[i] >= pcts[i + 1] for i in range(4)):
+            raise ValueError("Toroidal keyframe positions must be strictly increasing")
+        for i in range(5):
+            if props.toro_chords[i] <= 0:
+                raise ValueError("Toroidal chords must be > 0")
+            if not (0.0 <= props.toro_pivots[i] <= 100.0):
+                raise ValueError("Toroidal pivots must be in [0 .. 100]")
+            if not (-180.0 <= props.toro_attacks[i] <= 180.0):
+                raise ValueError("Toroidal attacks must be in [-180 .. 180]")
+            if int(props.toro_naca[i]) == 0:
+                if props.toro_ellipse[i] <= 0:
+                    raise ValueError("Toroidal ellipse scale must be > 0")
+        root_extent = max(_toro_root_half_extent(props, 0),
+                          _toro_root_half_extent(props, 4))
+        if props.toro_blade_offset + 2.0 * root_extent >= props.root_height:
+            raise ValueError("Blade Offset leaves the toroidal roots outside the hub")
+    else:
+        if not (1.0 <= props.ellipse_length <= 2.5):
+            raise ValueError("Ellipse Length doit être dans [1.0 .. 2.5]")
+        if not (0.0 < props.chord_fraction <= 0.8):
+            raise ValueError("Chord Fraction doit être dans (0 .. 0.8]")
+        if props.transition_point < 0 or props.transition_point > 1:
+            raise ValueError("Transition Point doit être dans [0 .. 1]")
+
     if props.shaft_type != "none":
         if props.shaft_diameter >= props.root_diameter * 0.9:
             raise ValueError("Shaft Diameter est trop grand pour le moyeu")
         if props.shaft_diameter <= 0:
             raise ValueError("Shaft Diameter doit être > 0")
-    if props.spinner_type != "none":
+    if props.blade_type == "straight" and props.spinner_type != "none":
         if props.spinner_diameter <= 0 or props.spinner_length <= 0:
             raise ValueError("Spinner Diameter/Length doivent être > 0")
-    if props.shroud:
+    if props.blade_type == "straight" and props.shroud:
         if props.shroud_wall <= 0 or props.shroud_length <= 0:
             raise ValueError("Shroud Wall/Length doivent être > 0")
     if props.scale <= 0:
@@ -1000,7 +1443,11 @@ def reset_props(props):
 def create_propeller_object(context, props):
     validate_props(props)
 
+    is_toroidal = props.blade_type == "toroidal"
+    y_shift = 0.0 if is_toroidal else props.offset
+
     temp_objects = []
+    temp_coll = None
     result = None
     try:
         # === 1. Pales (un objet par pale : booléens séquentiels robustes) ===
@@ -1015,21 +1462,21 @@ def create_propeller_object(context, props):
             vv = []
             for (x, y, z) in verts_blade:
                 vv.append((ca * x + sa * z,
-                           y + props.offset,
+                           y + y_shift,
                            -sa * x + ca * z))
 
             blade_mesh = bpy.data.meshes.new("PropellerMesh")
             blade_mesh.from_pydata(vv, [], [tuple(f) for f in faces_blade])
             blade_mesh.validate()
             blade_mesh.update()
-            clean_mesh(blade_mesh)
+            clean_mesh(blade_mesh, dist=1e-5 if is_toroidal else 0.01)
 
             blade = bpy.data.objects.new("Propeller", blade_mesh)
             context.collection.objects.link(blade)
             temp_objects.append(blade)
             blade_objs.append(blade)
 
-        blade_obj = blade_objs[0]
+        blade_obj = None
 
         # === 2. Moyeu ===
         bm = bmesh.new()
@@ -1037,9 +1484,13 @@ def create_propeller_object(context, props):
         r_hub = props.root_diameter / 2
         h_hub = props.root_height + props.hub_extend
 
-        maxchordlen = 2 * props.chord_fraction * (props.diameter / 2 - r_hub)
-        hh = min(maxchordlen, props.root_height)
-        y_margin = max(0.5, hh * 0.05)
+        # Toroidal roots are embedded in the hub, so no extra axial margin.
+        if is_toroidal:
+            y_margin = 0.0
+        else:
+            maxchordlen = 2 * props.chord_fraction * (props.diameter / 2 - r_hub)
+            hh = min(maxchordlen, props.root_height)
+            y_margin = max(0.5, hh * 0.05)
         y_hub_min = -y_margin
         y_hub_max = h_hub + y_margin
 
@@ -1063,20 +1514,49 @@ def create_propeller_object(context, props):
         context.collection.objects.link(hub_obj)
         temp_objects.append(hub_obj)
 
-        # === 3. Union pales + moyeu, pale par pale ===
-        _union_safe(blade_obj, hub_obj, "UnionHub")
-        _remove_object(hub_obj)
-        if hub_obj in temp_objects:
-            temp_objects.remove(hub_obj)
+        # The toroidal union produces a dense, self-intersecting mesh that the
+        # Boolean modifier cannot reliably cut afterwards.  Bore the hub first,
+        # while it is still a clean cylinder.
+        if is_toroidal:
+            cutter = make_shaft_cutter(props, y_hub_min, y_hub_max)
+            if cutter is not None:
+                temp_objects.append(cutter)
+                try:
+                    _apply_boolean(hub_obj, cutter, 'DIFFERENCE', "ShaftCut")
+                finally:
+                    _remove_object(cutter)
+                    temp_objects.remove(cutter)
 
-        for other in blade_objs[1:]:
-            _union_safe(blade_obj, other, "UnionBlade")
-            _remove_object(other)
-            if other in temp_objects:
-                temp_objects.remove(other)
+        # === 3. Union pales + moyeu ===
+        if is_toroidal:
+            temp_coll = bpy.data.collections.new("ToroBladesTemp")
+            context.scene.collection.children.link(temp_coll)
+            for blade in blade_objs:
+                temp_coll.objects.link(blade)
+            _apply_boolean_collection(hub_obj, temp_coll, "UnionToroidal")
+            for blade in blade_objs:
+                _remove_object(blade)
+                if blade in temp_objects:
+                    temp_objects.remove(blade)
+            bpy.data.collections.remove(temp_coll)
+            temp_coll = None
+            blade_obj = hub_obj
+            blade_obj.name = "Propeller"
+        else:
+            blade_obj = blade_objs[0]
+            _union_safe(blade_obj, hub_obj, "UnionHub")
+            _remove_object(hub_obj)
+            if hub_obj in temp_objects:
+                temp_objects.remove(hub_obj)
+
+            for other in blade_objs[1:]:
+                _union_safe(blade_obj, other, "UnionBlade")
+                _remove_object(other)
+                if other in temp_objects:
+                    temp_objects.remove(other)
 
         # === 4. Spinner ===
-        if props.spinner_type != "none":
+        if not is_toroidal and props.spinner_type != "none":
             # La base est légèrement à l'intérieur du moyeu (recouvrement franc).
             center_y = h_hub - 0.5 if props.spinner_on_hub else -0.5
             if props.spinner_type == "parabolic":
@@ -1098,7 +1578,7 @@ def create_propeller_object(context, props):
                     temp_objects.remove(sp_obj)
 
         # === 5. Shroud ===
-        if props.shroud:
+        if not is_toroidal and props.shroud:
             center_y = h_hub / 2
             sh_v, sh_f = build_shroud(props, center_y)
             if sh_v:
@@ -1119,7 +1599,7 @@ def create_propeller_object(context, props):
         assign_material(blade_obj, props.color)
 
         # === 7. Alésage ===
-        cutter = make_shaft_cutter(props, y_hub_min, y_hub_max)
+        cutter = None if is_toroidal else make_shaft_cutter(props, y_hub_min, y_hub_max)
         if cutter is not None:
             temp_objects.append(cutter)
             try:
@@ -1129,7 +1609,7 @@ def create_propeller_object(context, props):
                 temp_objects.remove(cutter)
 
         # === 8. Nettoyage final ===
-        clean_mesh(blade_obj.data, dist=0.02)
+        clean_mesh(blade_obj.data, dist=1e-5 if is_toroidal else 0.02)
 
         # === 9. Chanfrein de l'alésage ===
         if props.shaft_type == "cylinder" and props.shaft_chamfer > 0:
@@ -1172,6 +1652,11 @@ def create_propeller_object(context, props):
         return result
 
     finally:
+        if temp_coll is not None and temp_coll.name in bpy.data.collections:
+            try:
+                bpy.data.collections.remove(temp_coll)
+            except RuntimeError:
+                pass
         for o in list(temp_objects):
             _remove_object(o)
 
@@ -1274,7 +1759,7 @@ class PROP_PT_panel(bpy.types.Panel):
                                   text=name.replace("_", " ").title(), translate=False)
                 op.preset = name
             row = body.row(align=True)
-            for name in ["pc_fan", "toy_boat", "pullcopter"]:
+            for name in ["pc_fan", "toy_boat", "pullcopter", "toroidal"]:
                 op = row.operator("propeller.apply_preset",
                                   text=name.replace("_", " ").title(), translate=False)
                 op.preset = name
@@ -1285,32 +1770,65 @@ class PROP_PT_panel(bpy.types.Panel):
         header.label(text="Propeller", translate=False)
         if body:
             body.prop(props, "blades")
+            body.prop(props, "blade_type")
             body.prop(props, "diameter")
             body.prop(props, "direction")
             body.prop(props, "root_diameter")
             body.prop(props, "root_height")
-            body.prop(props, "pitch")
+            if props.blade_type == "straight":
+                body.prop(props, "pitch")
 
-        header, body = layout.panel("propeller_gen_blade", default_closed=False)
-        header.label(text="Blade", translate=False)
-        if body:
-            body.prop(props, "chord_mode")
-            body.prop(props, "chord_fraction")
-            body.prop(props, "ellipse_length")
-            body.prop(props, "centerline")
-            body.prop(props, "fairing")
-            body.prop(props, "sweep")
-            body.prop(props, "offset")
-            body.prop(props, "pitch_tip")
+        if props.blade_type == "straight":
+            header, body = layout.panel("propeller_gen_blade", default_closed=False)
+            header.label(text="Blade", translate=False)
+            if body:
+                body.prop(props, "chord_mode")
+                body.prop(props, "chord_fraction")
+                body.prop(props, "ellipse_length")
+                body.prop(props, "centerline")
+                body.prop(props, "fairing")
+                body.prop(props, "sweep")
+                body.prop(props, "offset")
+                body.prop(props, "pitch_tip")
 
-        header, body = layout.panel("propeller_gen_airfoils", default_closed=True)
-        header.label(text="Airfoils", translate=False)
-        if body:
-            body.prop(props, "naca_root")
-            body.prop(props, "naca_mid")
-            body.prop(props, "naca_tip")
-            body.prop(props, "transition_point")
-            body.prop(props, "trailing_thickness")
+            header, body = layout.panel("propeller_gen_airfoils", default_closed=True)
+            header.label(text="Airfoils", translate=False)
+            if body:
+                body.prop(props, "naca_root")
+                body.prop(props, "naca_mid")
+                body.prop(props, "naca_tip")
+                body.prop(props, "transition_point")
+                body.prop(props, "trailing_thickness")
+        else:
+            header, body = layout.panel("propeller_gen_toroidal", default_closed=False)
+            header.label(text="Toroidal Blade", translate=False)
+            if body:
+                body.prop(props, "toro_blade_offset")
+                body.prop(props, "toro_lead_width")
+                body.prop(props, "toro_trail_width")
+                body.prop(props, "toro_lead_x")
+                body.prop(props, "toro_trail_x")
+                body.separator()
+                body.label(text="Keyframes", translate=False)
+                head = body.row(align=True)
+                head.label(text="Pct")
+                head.label(text="NACA/ellipse")
+                head.label(text="Chord")
+                head.label(text="Pivot")
+                head.label(text="Attack")
+                for i in range(5):
+                    row = body.row(align=True)
+                    row.prop(props, "toro_pcts", index=i, text="")
+                    prof = row.row(align=True)
+                    prof.prop(props, "toro_naca", index=i, text="")
+                    if int(props.toro_naca[i]) == 0:
+                        prof.prop(props, "toro_ellipse", index=i, text="")
+                    row.prop(props, "toro_chords", index=i, text="")
+                    row.prop(props, "toro_pivots", index=i, text="")
+                    row.prop(props, "toro_attacks", index=i, text="")
+                body.separator()
+                body.prop(props, "toro_points")
+                body.prop(props, "toro_steps")
 
         header, body = layout.panel("propeller_gen_hub", default_closed=False)
         header.label(text="Hub & Shaft", translate=False)
@@ -1323,25 +1841,26 @@ class PROP_PT_panel(bpy.types.Panel):
             if props.shaft_type == "keyway":
                 body.prop(props, "keyway_size")
 
-        header, body = layout.panel("propeller_gen_spinner", default_closed=True)
-        header.label(text="Spinner", translate=False)
-        if body:
-            body.prop(props, "spinner_type")
-            if props.spinner_type != "none":
-                body.prop(props, "spinner_on_hub")
-                body.prop(props, "spinner_diameter")
-                body.prop(props, "spinner_length")
-                body.prop(props, "spinner_rounding")
+        if props.blade_type == "straight":
+            header, body = layout.panel("propeller_gen_spinner", default_closed=True)
+            header.label(text="Spinner", translate=False)
+            if body:
+                body.prop(props, "spinner_type")
+                if props.spinner_type != "none":
+                    body.prop(props, "spinner_on_hub")
+                    body.prop(props, "spinner_diameter")
+                    body.prop(props, "spinner_length")
+                    body.prop(props, "spinner_rounding")
 
-        header, body = layout.panel("propeller_gen_shroud", default_closed=True)
-        header.label(text="Shroud", translate=False)
-        if body:
-            body.prop(props, "shroud")
-            if props.shroud:
-                body.prop(props, "shroud_offset")
-                body.prop(props, "shroud_wall")
-                body.prop(props, "shroud_length")
-                body.prop(props, "shroud_chamfer")
+            header, body = layout.panel("propeller_gen_shroud", default_closed=True)
+            header.label(text="Shroud", translate=False)
+            if body:
+                body.prop(props, "shroud")
+                if props.shroud:
+                    body.prop(props, "shroud_offset")
+                    body.prop(props, "shroud_wall")
+                    body.prop(props, "shroud_length")
+                    body.prop(props, "shroud_chamfer")
 
         header, body = layout.panel("propeller_gen_output", default_closed=True)
         header.label(text="Output", translate=False)
@@ -1352,8 +1871,9 @@ class PROP_PT_panel(bpy.types.Panel):
             body.prop(props, "ground")
             body.prop(props, "shade_smooth")
             body.prop(props, "uv_unwrap")
-            body.prop(props, "points")
-            body.prop(props, "slices")
+            if props.blade_type == "straight":
+                body.prop(props, "points")
+                body.prop(props, "slices")
 
         layout.operator("propeller.generate", icon="MESH_DATA",
                         text="Generate Propeller", translate=False)

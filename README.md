@@ -11,6 +11,7 @@ The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 ## Features
 
 - 1 to 12 blades, **4-digit NACA** airfoil (root / mid / tip, with transition point).
+- **Toroidal blades**: closed ring loops with five editable NACA/ellipse keyframes and multi-blade support.
 - **Ellipse**, **linear** or **constant** blade planform: chord, ellipse length, centerline, fairing, sweep and offset.
 - Radial twist: pitch in mm/rev (auto or manual) and tip pitch.
 - Parametric **hub**, **ogive** or **parabolic** spinner.
@@ -19,7 +20,7 @@ The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 - **Watertight** mesh (validated sequential booleans), consistent normals, angle-based smoothing.
 - Automatic **UVs**, single material, adjustable color.
 - Real-world units: dimensions in **millimeters**, object generated in **meters**, placed on the ground.
-- Six ready-to-use presets.
+- Seven ready-to-use presets.
 
 ## Demo
 
@@ -76,6 +77,7 @@ The **Reset Defaults** button restores every parameter to its default value.
 | `PC Fan` | PC case fan |
 | `Toy Boat` | toy boat propeller, 3 blades |
 | `Pullcopter` | pull propeller, shroud and bore |
+| `Toroidal` | 2-blade toroidal propeller with ring loops |
 
 ## Main parameters
 
@@ -83,6 +85,7 @@ The **Reset Defaults** button restores every parameter to its default value.
 | --- | --- |
 | Propeller | blade count, diameter, rotation direction, root diameter/height, pitch |
 | Blade | chord mode, chord fraction, ellipse length, centerline, fairing, sweep, offset, tip pitch |
+| Toroidal Blade | blade offset, lead/trail width and X position, five keyframes (position, profile, chord, pivot, attack), points and sections |
 | Airfoils | root/mid/tip NACA, transition point, trailing-edge thickness |
 | Hub & Shaft | hub extension, bore type (none, cylinder, D, hex, keyway), diameter, depth, chamfer, keyway size |
 | Spinner | none, ogive or parabolic; hub mount, diameter, length, rounding |
@@ -118,6 +121,10 @@ propeller/
 ## References
 
 - NACA 4-digit airfoils: [Airfoil Tools](http://airfoiltools.com/airfoil/naca4digit)
+- Toroidal blade path and profile concepts inspired by
+  [Ultimate Toroidal Propeller Generator](https://github.com/RaulBejarano/Ultimate-Toroidal-Propeller-Generator)
+  by Raul Bejarano (GPL-3.0). The Blender implementation is independent and
+  contains no GPL code.
 
 ## License
 

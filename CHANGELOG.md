@@ -3,6 +3,39 @@
 Toutes les modifications notables de ce projet sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.1.0] - 2026-10-22
+
+### Ajouté
+
+- Type de pale **Toroidal** : boucle fermée générée par loft le long d'une
+  spline Catmull-Rom, avec cinq images clés éditables (position, NACA ou
+  ellipse, corde, pivot, incidence).
+- Support de 1 à 12 pales toroïdales, avec union du moyeu et de toutes les
+  boucles en une seule opération booléenne.
+- Paramètres toroïdaux : offset axial, largeurs et positions X des moitiés
+  avant/arrière, résolution du profil et nombre de sections.
+- Préréglage **Toroidal** : 2 pales, diamètre 80 mm, moyeu 16 × 6 mm, alésage
+  cylindrique 5,5 mm, sans spinner ni shroud.
+- Panneau **Toroidal Blade** avec les cinq lignes d'images clés.
+- Validation des images clés, des profils, de l'ellipse et de l'offset de pale.
+
+### Modifié
+
+- Les paramètres de pale droite (planforme, NACA, spinner, shroud, points et
+  segments) sont masqués pour le type toroïdal, et inversement.
+- Le nombre de pales n'est plus forcé à 1 pour les pales toroïdales.
+
+### Corrigé
+
+- Nettoyage du maillage toroïdal avec une tolérance adaptée : les sections
+  fines ne fusionnent plus et le résultat reste manifold.
+- Union toroïdale par collection avec repli de solveur, pour éviter les
+  composants séparés ou les doublons.
+- Alésage du moyeu toroïdal usiné avant l'union des pales : le booléen final ne
+  perçait pas le maillage issu de l'union et le moyeu restait plein.
+- Orientation des sections et correction des moitiés avant/arrière alignées sur
+  la géométrie de référence.
+
 ## [1.0.4] - 2026-10-21
 
 ### Corrigé

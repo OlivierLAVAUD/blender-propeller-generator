@@ -3,6 +3,17 @@
 Toutes les modifications notables de ce projet sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.2.1] - 2026-10-23
+
+### Modifié
+
+- GIF de démonstration remplacé par le rendu des huit préréglages.
+- GIF de présentation et aperçu mis à jour.
+
+### Corrigé
+
+- Version `bl_info` alignée sur `blender_manifest.toml`.
+
 ## [1.2.0] - 2026-10-22
 
 ### Ajouté

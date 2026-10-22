@@ -12,6 +12,7 @@ The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 
 - 1 to 12 blades, **4-digit NACA** airfoil (root / mid / tip, with transition point).
 - **Toroidal blades**: closed ring loops with five editable NACA/ellipse keyframes and multi-blade support.
+- **Toroidal ring**: flat circular loops with adjustable width, segments, twist and layers, from 2 to 12 blades.
 - **Ellipse**, **linear** or **constant** blade planform: chord, ellipse length, centerline, fairing, sweep and offset.
 - Radial twist: pitch in mm/rev (auto or manual) and tip pitch.
 - Parametric **hub**, **ogive** or **parabolic** spinner.
@@ -20,7 +21,7 @@ The panel is in the 3D View: `N` > sidebar > **Propeller** tab.
 - **Watertight** mesh (validated sequential booleans), consistent normals, angle-based smoothing.
 - Automatic **UVs**, single material, adjustable color.
 - Real-world units: dimensions in **millimeters**, object generated in **meters**, placed on the ground.
-- Seven ready-to-use presets.
+- Eight ready-to-use presets.
 
 ## Demo
 
@@ -77,7 +78,8 @@ The **Reset Defaults** button restores every parameter to its default value.
 | `PC Fan` | PC case fan |
 | `Toy Boat` | toy boat propeller, 3 blades |
 | `Pullcopter` | pull propeller, shroud and bore |
-| `Toroidal` | 2-blade toroidal propeller with ring loops |
+| `Toroidal Blade` | 2-blade lofted toroidal propeller |
+| `Toroidal Ring` | 3-blade flat circular ring propeller |
 
 ## Main parameters
 
@@ -86,6 +88,7 @@ The **Reset Defaults** button restores every parameter to its default value.
 | Propeller | blade count, diameter, rotation direction, root diameter/height, pitch |
 | Blade | chord mode, chord fraction, ellipse length, centerline, fairing, sweep, offset, tip pitch |
 | Toroidal Blade | blade offset, lead/trail width and X position, five keyframes (position, profile, chord, pivot, attack), points and sections |
+| Toroidal Ring | ring width, segments, twist and layers |
 | Airfoils | root/mid/tip NACA, transition point, trailing-edge thickness |
 | Hub & Shaft | hub extension, bore type (none, cylinder, D, hex, keyway), diameter, depth, chamfer, keyway size |
 | Spinner | none, ogive or parabolic; hub mount, diameter, length, rounding |

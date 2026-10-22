@@ -3,6 +3,32 @@
 Toutes les modifications notables de ce projet sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
+## [1.2.0] - 2026-10-22
+
+### Ajouté
+
+- Type de pale **Ring** : boucles circulaires plates à section rectangulaire,
+  avec largeur, nombre de segments, vrillage et couches réglables, de 2 à 12
+  pales.
+- Préréglage **Toroidal Ring** : 3 pales, diamètre 86,4 mm, moyeu 8,4 × 4,48 mm,
+  alésage hexagonal 3,75 mm.
+- Panneau **Ring Blade** avec les paramètres de largeur, segments, vrillage et
+  couches.
+
+### Modifié
+
+- Les boutons du menu **Presets** sont renommés **Toroidal Blade** et
+  **Toroidal Ring**.
+
+### Corrigé
+
+- Anneaux de 4 pales et plus : la branche intérieure est coupée de
+  l'intersection avec l'anneau voisin jusqu'à la surface du moyeu, puis
+  refermée. Les voiles de fusion entre anneaux disparaissent et le maillage
+  reste étanche.
+- Anneaux de 3 pales conservés à l'identique ; les anneaux de 2 pales restent
+  fermés.
+
 ## [1.1.0] - 2026-10-22
 
 ### Ajouté

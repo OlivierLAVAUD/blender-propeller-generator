@@ -12,6 +12,7 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 
 - 1 à 12 pales, section **NACA 4 chiffres** (racine / milieu / pointe, avec point de transition).
 - **Pales toroïdales** : boucles fermées avec cinq images clés NACA/ellipse modifiables et support multi-pales.
+- **Anneau toroïdal** : boucles circulaires plates avec largeur, segments, vrillage et couches réglables, de 2 à 12 pales.
 - Planforme de pale **ellipse**, **linéaire** ou **constante** : corde, longueur d'ellipse, ligne médiane, fairing, flèche et offset.
 - Vrillage radial : pas en mm/tour (auto ou manuel) et pas de pointe.
 - **Moyeu** paramétrique, **ogive** ou spinner **parabolique**.
@@ -20,7 +21,7 @@ Le panneau se trouve dans la vue 3D : `N` > barre latérale > onglet **Propeller
 - Maillage **étanche** (booléens séquentiels validés), normales cohérentes, lissage par angle.
 - **UV** automatiques, matériau unique, couleur réglable.
 - Unités réelles : cotes saisies en **millimètres**, objet généré en **mètres**, posé au sol.
-- Sept préréglages prêts à l'emploi.
+- Huit préréglages prêts à l'emploi.
 
 ## Démo
 
@@ -77,7 +78,8 @@ Le bouton **Reset Defaults** remet tous les paramètres à leur valeur par défa
 | `PC Fan` | ventilateur de boîtier PC |
 | `Toy Boat` | hélice de bateau jouet, 3 pales |
 | `Pullcopter` | hélice à tirer, shroud et alésage |
-| `Toroidal` | hélice toroïdale 2 pales à boucles |
+| `Toroidal Blade` | hélice toroïdale 2 pales générée par loft |
+| `Toroidal Ring` | hélice à anneau circulaire plat, 3 pales |
 
 ## Paramètres principaux
 
@@ -86,6 +88,7 @@ Le bouton **Reset Defaults** remet tous les paramètres à leur valeur par défa
 | Propeller | nombre de pales, diamètre, sens de rotation, diamètre/hauteur de racine, pas |
 | Blade | mode de corde, fraction de corde, longueur d'ellipse, ligne médiane, fairing, flèche, offset, pas de pointe |
 | Toroidal Blade | offset de pale, largeur et position X avant/arrière, cinq images clés (position, profil, corde, pivot, incidence), points et sections |
+| Toroidal Ring | largeur, segments, vrillage et couches de l'anneau |
 | Airfoils | NACA racine/milieu/pointe, point de transition, épaisseur de bord de fuite |
 | Hub & Shaft | extension du moyeu, type d'alésage (aucun, cylindre, D, hex, clavette), diamètre, profondeur, chanfrein, taille de clavette |
 | Spinner | aucun, ogive ou parabolique ; montage sur moyeu, diamètre, longueur, arrondi |
@@ -117,6 +120,18 @@ propeller/
     index.json           # index du dépôt d'extensions Blender
     preview.png          # aperçu du README
 ```
+
+## Notes de version 1.2.0
+
+- Nouveau type de pale **Ring** : anneaux circulaires plats à section
+  rectangulaire, avec largeur, segments, vrillage et couches réglables.
+- Nouveau préréglage **Toroidal Ring** (3 pales, 86,4 mm, moyeu 8,4 × 4,48 mm,
+  alésage hexagonal 3,75 mm).
+- Boutons du menu **Presets** renommés **Toroidal Blade** et **Toroidal Ring**.
+- Anneaux de 4 pales et plus : suppression des voiles de fusion et fermeture
+  propre de la branche intérieure entre l'anneau voisin et le moyeu.
+- Anneaux de 3 pales conservés à l'identique ; les anneaux de 2 pales restent
+  fermés.
 
 ## Notes de version 1.1.0
 

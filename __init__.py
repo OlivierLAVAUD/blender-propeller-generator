@@ -105,6 +105,25 @@ PRESETS = {
         "shaft_diameter": 5.5,
         "shaft_chamfer": 0.4,
     },
+    "ring": {
+        "blade_type": "ring",
+        "blades": 3,
+        "diameter": 86.4,
+        "root_diameter": 8.4,
+        "root_height": 4.48,
+        "hub_extend": 0.0,
+        "pitch": -1.0,
+        "offset": 0.0,
+        "ring_width": 0.56,
+        "ring_segments": 128,
+        "ring_twist": 15.6,
+        "ring_layers": 6,
+        "spinner_type": "none",
+        "shroud": False,
+        "shaft_type": "hex",
+        "shaft_diameter": 3.75,
+        "shaft_chamfer": 0.2,
+    },
 }
 
 # ============================================================
@@ -126,7 +145,8 @@ class PropellerProperties(bpy.types.PropertyGroup):
         name="Blade Type", translation_context=PROP_CTX,
         description="Geometry of the blade",
         items=[("straight", "Straight", "Classic radial blades"),
-               ("toroidal", "Toroidal", "Toroidal ring blade")],
+               ("toroidal", "Toroidal", "Lofted toroidal blade loop"),
+               ("ring", "Ring", "Flat circular ring blades (2+ blades)")],
         default="straight"
     )
     diameter: bpy.props.FloatProperty(
@@ -209,6 +229,24 @@ class PropellerProperties(bpy.types.PropertyGroup):
     toro_steps: bpy.props.IntProperty(
         name="Slices per Span", default=16, min=2, max=64,
         description="Loft sections between consecutive toroidal keyframes",
+        translation_context=PROP_CTX)
+
+    # Ring blade
+    ring_width: bpy.props.FloatProperty(
+        name="Ring Width (mm)", default=0.5, min=0.1, max=20.0,
+        description="Radial width of the ring wall",
+        translation_context=PROP_CTX)
+    ring_segments: bpy.props.IntProperty(
+        name="Ring Segments", default=128, min=24, max=512,
+        description="Segments around each ring",
+        translation_context=PROP_CTX)
+    ring_twist: bpy.props.FloatProperty(
+        name="Ring Twist (deg)", default=16.0, min=-180.0, max=180.0,
+        description="Total rotation of each ring between its bottom and top edges",
+        translation_context=PROP_CTX)
+    ring_layers: bpy.props.IntProperty(
+        name="Ring Layers", default=6, min=2, max=32,
+        description="Axial subdivisions used to follow the ring twist",
         translation_context=PROP_CTX)
 
     # Blade
@@ -720,10 +758,115 @@ def build_toroidal_blade_vnf(props):
         verts = [(-x, y, z) for (x, y, z) in verts]
     return verts, faces
 
+
+def build_ring_blade_vnf(props):
+    """Build one twisted circular ring blade with a rectangular section.
+
+    The ring centerline is a closed circle tangent to the blade axis: its
+    center is one radius away from the axis, so the outer edge reaches the
+    nominal diameter.  Each height layer is rotated around the hub axis to
+    give the blade its helical pitch.  Where the inner branch would overlap
+    the next blade it is omitted and capped: three-blade rings keep the
+    historical 300-degree arc, while four or more blades trim exactly from
+    the adjacent-loop crossing to where the centreline enters the hub.  One
+    and two-blade rings do not overlap and stay closed.  The part of the loop
+    inside the shaft is removed by the bore after the union.
+    """
+    radius = max((props.diameter - props.ring_width) * 0.25, 1e-4)
+    width = max(float(props.ring_width), 1e-4)
+    thickness = max(float(props.root_height), 1e-4)
+    hw = width * 0.5
+
+    blade_count = max(int(props.blades), 1)
+    trim_inner_branch = blade_count == 3
+    if trim_inner_branch:
+        # Keep five sixths of the loop, starting at the hub tangent.  The
+        # omitted sixth is the inner branch on the other side.
+        arc = math.radians(300.0)
+        arc_start = math.pi
+        segments = max(20, int(round(max(24, int(props.ring_segments)) * 5.0 / 6.0)))
+    elif blade_count >= 4:
+        # Adjacent loop centrelines cross at 2*pi/blade_count (the first
+        # crossing is the hub).  Remove the inner branch between that
+        # crossing and the hub surface, capping both ends.  Stopping at the
+        # hub surface preserves a root outside the hub instead of cutting
+        # the blade loose.
+        r_hub = max(float(props.root_diameter) * 0.5, 1e-4)
+        theta_hub = 2.0 * math.acos(max(-1.0, min(1.0, r_hub / (2.0 * radius))))
+        theta_cross = 2.0 * math.pi / blade_count
+        trim_inner_branch = theta_hub > theta_cross + 1e-6
+        if trim_inner_branch:
+            arc_start = theta_hub
+            arc = 2.0 * math.pi - (theta_hub - theta_cross)
+            segments = max(20, int(round(
+                max(24, int(props.ring_segments)) * arc / (2.0 * math.pi))))
+    if not trim_inner_branch:
+        arc = 2.0 * math.pi
+        arc_start = 0.0
+        segments = max(24, int(props.ring_segments))
+    sections = segments + 1 if trim_inner_branch else segments
+    layers = max(2, int(props.ring_layers))
+    twist = math.radians(float(props.ring_twist))
+    y_axis = Vector((0.0, 1.0, 0.0))
+
+    # Closed rectangular section: inner edge -> outer edge, up the outer
+    # face, across the top, then down the inner face.
+    profile = [(-hw, 0.0), (hw, 0.0)]
+    for j in range(1, layers):
+        profile.append((hw, thickness * j / (layers - 1)))
+    profile.append((-hw, thickness))
+    for j in range(layers - 2, 0, -1):
+        profile.append((-hw, thickness * j / (layers - 1)))
+    count = len(profile)
+
+    vertices = []
+    for s in range(sections):
+        angle = arc_start + arc * s / segments
+        cos_a = math.cos(angle)
+        sin_a = math.sin(angle)
+        center = Vector((radius * (1.0 + cos_a), 0.0, radius * sin_a))
+        radial = Vector((cos_a, 0.0, sin_a))
+        for radial_offset, y_offset in profile:
+            v = center + radial * radial_offset + y_axis * y_offset
+            phi = twist * (y_offset / thickness - 0.5)
+            if abs(phi) > 1e-12:
+                cos_p = math.cos(phi)
+                sin_p = math.sin(phi)
+                v = Vector((v.x * cos_p + v.z * sin_p,
+                            v.y,
+                            -v.x * sin_p + v.z * cos_p))
+            vertices.append(v)
+
+    faces = []
+    if trim_inner_branch:
+        for s in range(sections - 1):
+            base = s * count
+            nxt = base + count
+            for k in range(count):
+                kn = (k + 1) % count
+                faces.append((base + k, base + kn, nxt + kn, nxt + k))
+        faces.append(tuple(reversed(range(count))))
+        last = (sections - 1) * count
+        faces.append(tuple(range(last, last + count)))
+    else:
+        for s in range(segments):
+            base = s * count
+            nxt = ((s + 1) % segments) * count
+            for k in range(count):
+                kn = (k + 1) % count
+                faces.append((base + k, base + kn, nxt + kn, nxt + k))
+
+    verts = [(v.x, v.y, v.z) for v in vertices]
+    if props.direction == "CW":
+        verts = [(-x, y, z) for (x, y, z) in verts]
+    return verts, faces
+
+
 def build_blade_vnf(props):
-    # Nouveau : mode toroïdal
     if props.blade_type == "toroidal":
         return build_toroidal_blade_vnf(props)
+    if props.blade_type == "ring":
+        return build_ring_blade_vnf(props)
 
     # --- Code existant pour les pales droites ---
     rhub = props.root_diameter / 2
@@ -1398,6 +1541,13 @@ def validate_props(props):
                           _toro_root_half_extent(props, 4))
         if props.toro_blade_offset + 2.0 * root_extent >= props.root_height:
             raise ValueError("Blade Offset leaves the toroidal roots outside the hub")
+    elif props.blade_type == "ring":
+        if props.blades < 2:
+            raise ValueError("Ring blades require at least 2 blades")
+        if props.ring_width <= 0 or props.ring_width >= props.diameter * 0.25:
+            raise ValueError("Ring Width doit être dans (0 .. Diameter/4)")
+        if props.root_height <= 0:
+            raise ValueError("Root Height doit être > 0")
     else:
         if not (1.0 <= props.ellipse_length <= 2.5):
             raise ValueError("Ellipse Length doit être dans [1.0 .. 2.5]")
@@ -1444,7 +1594,9 @@ def create_propeller_object(context, props):
     validate_props(props)
 
     is_toroidal = props.blade_type == "toroidal"
-    y_shift = 0.0 if is_toroidal else props.offset
+    is_ring = props.blade_type == "ring"
+    is_loop = is_toroidal or is_ring
+    y_shift = 0.0 if is_loop else props.offset
 
     temp_objects = []
     temp_coll = None
@@ -1469,7 +1621,7 @@ def create_propeller_object(context, props):
             blade_mesh.from_pydata(vv, [], [tuple(f) for f in faces_blade])
             blade_mesh.validate()
             blade_mesh.update()
-            clean_mesh(blade_mesh, dist=1e-5 if is_toroidal else 0.01)
+            clean_mesh(blade_mesh, dist=1e-5 if is_loop else 0.01)
 
             blade = bpy.data.objects.new("Propeller", blade_mesh)
             context.collection.objects.link(blade)
@@ -1484,8 +1636,8 @@ def create_propeller_object(context, props):
         r_hub = props.root_diameter / 2
         h_hub = props.root_height + props.hub_extend
 
-        # Toroidal roots are embedded in the hub, so no extra axial margin.
-        if is_toroidal:
+        # Loop-blade roots are embedded in the hub, so no extra axial margin.
+        if is_loop:
             y_margin = 0.0
         else:
             maxchordlen = 2 * props.chord_fraction * (props.diameter / 2 - r_hub)
@@ -1514,9 +1666,11 @@ def create_propeller_object(context, props):
         context.collection.objects.link(hub_obj)
         temp_objects.append(hub_obj)
 
-        # The toroidal union produces a dense, self-intersecting mesh that the
-        # Boolean modifier cannot reliably cut afterwards.  Bore the hub first,
-        # while it is still a clean cylinder.
+        # Toroidal unions produce dense, self-intersecting meshes that the
+        # Boolean modifier cannot reliably cut afterwards, so bore the hub
+        # first while it is still a clean cylinder.  Ring blades are unioned
+        # closed and cut afterwards: a three-blade ring leaves one root per
+        # blade, while other counts keep both inner ends joined to the hub.
         if is_toroidal:
             cutter = make_shaft_cutter(props, y_hub_min, y_hub_max)
             if cutter is not None:
@@ -1528,12 +1682,12 @@ def create_propeller_object(context, props):
                     temp_objects.remove(cutter)
 
         # === 3. Union pales + moyeu ===
-        if is_toroidal:
-            temp_coll = bpy.data.collections.new("ToroBladesTemp")
+        if is_loop:
+            temp_coll = bpy.data.collections.new("LoopBladesTemp")
             context.scene.collection.children.link(temp_coll)
             for blade in blade_objs:
                 temp_coll.objects.link(blade)
-            _apply_boolean_collection(hub_obj, temp_coll, "UnionToroidal")
+            _apply_boolean_collection(hub_obj, temp_coll, "UnionLoop")
             for blade in blade_objs:
                 _remove_object(blade)
                 if blade in temp_objects:
@@ -1556,7 +1710,7 @@ def create_propeller_object(context, props):
                     temp_objects.remove(other)
 
         # === 4. Spinner ===
-        if not is_toroidal and props.spinner_type != "none":
+        if not is_loop and props.spinner_type != "none":
             # La base est légèrement à l'intérieur du moyeu (recouvrement franc).
             center_y = h_hub - 0.5 if props.spinner_on_hub else -0.5
             if props.spinner_type == "parabolic":
@@ -1578,7 +1732,7 @@ def create_propeller_object(context, props):
                     temp_objects.remove(sp_obj)
 
         # === 5. Shroud ===
-        if not is_toroidal and props.shroud:
+        if not is_loop and props.shroud:
             center_y = h_hub / 2
             sh_v, sh_f = build_shroud(props, center_y)
             if sh_v:
@@ -1599,6 +1753,8 @@ def create_propeller_object(context, props):
         assign_material(blade_obj, props.color)
 
         # === 7. Alésage ===
+        # Ring loops are bored after the union (see above); toroidal hubs are
+        # bored before their union.
         cutter = None if is_toroidal else make_shaft_cutter(props, y_hub_min, y_hub_max)
         if cutter is not None:
             temp_objects.append(cutter)
@@ -1609,7 +1765,7 @@ def create_propeller_object(context, props):
                 temp_objects.remove(cutter)
 
         # === 8. Nettoyage final ===
-        clean_mesh(blade_obj.data, dist=1e-5 if is_toroidal else 0.02)
+        clean_mesh(blade_obj.data, dist=1e-5 if is_loop else 0.02)
 
         # === 9. Chanfrein de l'alésage ===
         if props.shaft_type == "cylinder" and props.shaft_chamfer > 0:
@@ -1759,9 +1915,13 @@ class PROP_PT_panel(bpy.types.Panel):
                                   text=name.replace("_", " ").title(), translate=False)
                 op.preset = name
             row = body.row(align=True)
-            for name in ["pc_fan", "toy_boat", "pullcopter", "toroidal"]:
+            for name in ["pc_fan", "toy_boat", "pullcopter"]:
                 op = row.operator("propeller.apply_preset",
                                   text=name.replace("_", " ").title(), translate=False)
+                op.preset = name
+            row = body.row(align=True)
+            for name, label in [("toroidal", "Toroidal Blade"), ("ring", "Toroidal Ring")]:
+                op = row.operator("propeller.apply_preset", text=label, translate=False)
                 op.preset = name
             body.operator("propeller.reset", icon='LOOP_BACK',
                           text="Reset Defaults", translate=False)
@@ -1770,7 +1930,6 @@ class PROP_PT_panel(bpy.types.Panel):
         header.label(text="Propeller", translate=False)
         if body:
             body.prop(props, "blades")
-            body.prop(props, "blade_type")
             body.prop(props, "diameter")
             body.prop(props, "direction")
             body.prop(props, "root_diameter")
@@ -1799,7 +1958,7 @@ class PROP_PT_panel(bpy.types.Panel):
                 body.prop(props, "naca_tip")
                 body.prop(props, "transition_point")
                 body.prop(props, "trailing_thickness")
-        else:
+        elif props.blade_type == "toroidal":
             header, body = layout.panel("propeller_gen_toroidal", default_closed=False)
             header.label(text="Toroidal Blade", translate=False)
             if body:
@@ -1829,6 +1988,14 @@ class PROP_PT_panel(bpy.types.Panel):
                 body.separator()
                 body.prop(props, "toro_points")
                 body.prop(props, "toro_steps")
+        else:
+            header, body = layout.panel("propeller_gen_ring", default_closed=False)
+            header.label(text="Ring Blade", translate=False)
+            if body:
+                body.prop(props, "ring_width")
+                body.prop(props, "ring_segments")
+                body.prop(props, "ring_twist")
+                body.prop(props, "ring_layers")
 
         header, body = layout.panel("propeller_gen_hub", default_closed=False)
         header.label(text="Hub & Shaft", translate=False)
